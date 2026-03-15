@@ -1,0 +1,48 @@
+/* 留言板样式 / Messages CSS */
+/* ========== 留言页专属样式 ========== */
+
+/* 留言卡片 */
+.message {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+}
+
+
+.message .meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+/* 管理员回复 */
+.reply {
+  margin-top: 10px;
+  padding: 10px;
+  border-left: 3px solid var(--accent);
+  background: #fff9f2;
+  border-radius: 8px;
+}
+
+/* 验证码区域 */
+.captcha-box {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px dashed var(--line);
+  background: #fffef9;
+}
+
+.captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 防机器人蜜罐 */
+.honeypot {
+  display: none;
+}

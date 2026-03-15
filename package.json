@@ -1,0 +1,13 @@
+{
+  "name": "jeje_web",
+  "version": "1.0.0",
+  "description": "JEJE WEB - 个人网站",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd backend && go run .",
+    "dev": "cd backend && go run ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

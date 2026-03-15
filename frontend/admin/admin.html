@@ -1,0 +1,130 @@
+<!-- 管理后台 HTML / Admin HTML -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理后台 - JEJE WEB</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="/globals/global.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo">JEJE WEB</div>
+      <nav>
+        <a href="/">首页</a>
+        <a href="/messages">留言</a>
+      </nav>
+    </header>
+
+    <section class="section">
+      <div class="form-card" id="loginCard">
+        <h2>管理员登录</h2>
+        <form id="loginForm">
+          <input name="username" placeholder="账号" required />
+          <input name="password" placeholder="密码" type="password" required />
+          <button class="btn primary" type="submit">登录</button>
+        </form>
+      </div>
+
+      <div id="adminPanel" style="display: none;">
+        <div class="tabs-row">
+          <div class="tabs">
+            <button class="tab active" data-tab="dashboard">控制面板</button>
+            <button class="tab" data-tab="messages">留言管理</button>
+            <button class="tab" data-tab="projects">项目管理</button>
+          </div>
+          <button id="logoutBtn" class="btn small" type="button">退出登录</button>
+        </div>
+
+        <div id="tab-dashboard">
+          <div class="stats-grid">
+            <div class="stats-card">
+              <div class="stats-label">项目总数</div>
+              <div class="stats-value" id="stats-projects">-</div>
+            </div>
+            <div class="stats-card">
+              <div class="stats-label">留言总数</div>
+              <div class="stats-value" id="stats-messages">-</div>
+            </div>
+            <div class="stats-card">
+              <div class="stats-label">待审留言</div>
+              <div class="stats-value highlight" id="stats-pending">-</div>
+            </div>
+            <div class="stats-card">
+              <div class="stats-label">今日新增</div>
+              <div class="stats-value" id="stats-today">-</div>
+            </div>
+          </div>
+          <div class="banner mt-4">
+            <strong>欢迎回来，管理员。</strong>
+            <span>上方是您网站的运行概况，点击标签页可进行详细管理。</span>
+          </div>
+        </div>
+
+        <div id="tab-messages" class="admin-grid" style="display: none;">
+          <div>
+            <h3>留言列表</h3>
+            <div id="adminMessageList" class="list"></div>
+          </div>
+          <div class="form-card">
+            <h3>回复留言</h3>
+            <form id="replyForm">
+              <input name="messageId" placeholder="留言ID" required />
+              <textarea name="content" placeholder="回复内容" required></textarea>
+              <button class="btn primary" type="submit">发送回复</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="tab-projects" style="display: none;">
+          <div class="admin-grid">
+            <div>
+              <h3>项目列表</h3>
+              <div id="projectList" class="list"></div>
+            </div>
+            <div class="form-card">
+              <h3>新建 / 更新项目</h3>
+              <form id="projectForm">
+                <input name="id" placeholder="项目ID (更新时填写)" />
+                <input name="name" placeholder="项目名称" required />
+                <input name="summary" placeholder="简介" />
+                <input name="cover_url" placeholder="封面图 URL" />
+                <input name="external_url" placeholder="外链" />
+                <input name="sort_order" placeholder="排序 (数字大在前)" type="number" value="0" />
+                <select name="is_public">
+                  <option value="1">公开</option>
+                  <option value="0">隐藏</option>
+                </select>
+                <div class="editor">
+                  <div class="editor-toolbar">
+                    <button class="btn small" type="button" data-cmd="bold">加粗</button>
+                    <button class="btn small" type="button" data-cmd="italic">斜体</button>
+                    <button class="btn small" type="button" data-cmd="underline">下划线</button>
+                    <button class="btn small" type="button" data-cmd="h2">标题</button>
+                    <button class="btn small" type="button" data-cmd="ul">无序列表</button>
+                    <button class="btn small" type="button" data-cmd="ol">有序列表</button>
+                    <button class="btn small" type="button" data-cmd="link">插入链接</button>
+                    <button class="btn small" type="button" id="imageUploadBtn">上传图片</button>
+                    <input type="file" id="imageUploadInput" accept="image/*" hidden />
+                  </div>
+                  <div id="projectEditor" class="editor-body" contenteditable="true" spellcheck="false"></div>
+                  <textarea name="content_html" id="contentHtml" class="editor-textarea"></textarea>
+                </div>
+                <button class="btn primary" type="submit">提交</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>管理后台仅限授权人员使用。</div>
+    </footer>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>
+
