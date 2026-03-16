@@ -1,4 +1,4 @@
-// 频率限制 / Rate Limiter
+﻿// 频率限制 / Rate Limiter
 package utils
 
 import (
@@ -11,6 +11,7 @@ type RateLimiter struct {
 	window time.Duration
 	max    int
 	hits   map[string][]time.Time
+	lastCleanup time.Time
 }
 
 func NewRateLimiter(window time.Duration, max int) *RateLimiter {
@@ -30,6 +31,23 @@ func (r *RateLimiter) Allow(key string) bool {
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	if r.lastCleanup.IsZero() || now.Sub(r.lastCleanup) > r.window {
+		for key, entries := range r.hits {
+			filtered := entries[:0]
+			for _, t := range entries {
+				if t.After(cutoff) {
+					filtered = append(filtered, t)
+				}
+			}
+			if len(filtered) == 0 {
+				delete(r.hits, key)
+			} else {
+				r.hits[key] = filtered
+			}
+		}
+		r.lastCleanup = now
+	}
 
 	entries := r.hits[key]
 	filtered := entries[:0]

@@ -5,10 +5,13 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"log"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmoiron/sqlx"
+	"github.com/microcosm-cc/bluemonday"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,41 +36,77 @@ type App struct {
 	LoginGuard   *utils.LoginGuard
 }
 
+func parsePagination(c *gin.Context, defaultLimit, maxLimit int) (int, int, int) {
+	page := parsePositiveInt(c.Query("page"), 1)
+	limit := parsePositiveInt(c.Query("limit"), defaultLimit)
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+	if limit < 1 {
+		limit = defaultLimit
+	}
+	offset := (page - 1) * limit
+	return page, limit, offset
+}
+
+func parsePositiveInt(value string, def int) int {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return def
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil || parsed <= 0 {
+		return def
+	}
+	return parsed
+}
+
+
 func (a *App) Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "正常"})
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (a *App) AdminStats(c *gin.Context) {
 	var stats struct {
-		TotalProjects int `json:"total_projects"`
-		TotalMessages int `json:"total_messages"`
+		TotalProjects   int `json:"total_projects"`
+		TotalMessages   int `json:"total_messages"`
 		PendingMessages int `json:"pending_messages"`
-		TodayMessages int `json:"today_messages"`
+		TodayMessages   int `json:"today_messages"`
+		TotalViews      int `json:"total_views"`
 	}
 
-	err := a.DB.Get(&stats.TotalProjects, "SELECT COUNT(*) FROM projects")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取项目统计失败"})
-		return
+	// Compute today range to keep indexes usable
+	now := time.Now()
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	nextDayStart := todayStart.AddDate(0, 0, 1)
+
+	// Define tasks and run concurrently
+	type task struct {
+		target *int
+		query  string
+		args   []any
+	}
+	tasks := []task{
+		{&stats.TotalProjects, "SELECT COUNT(*) FROM projects", nil},
+		{&stats.TotalMessages, "SELECT COUNT(*) FROM messages", nil},
+		{&stats.PendingMessages, "SELECT COUNT(*) FROM messages WHERE status = 0", nil},
+		{&stats.TodayMessages, "SELECT COUNT(*) FROM messages WHERE created_at >= ? AND created_at < ?", []any{todayStart, nextDayStart}},
+		{&stats.TotalViews, "SELECT IFNULL(SUM(view_count),0) FROM projects", nil},
 	}
 
-	err = a.DB.Get(&stats.TotalMessages, "SELECT COUNT(*) FROM messages")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取留言统计失败"})
-		return
+	errChan := make(chan error, len(tasks))
+	for _, t := range tasks {
+		go func(t task) {
+			errChan <- a.DB.Get(t.target, t.query, t.args...)
+		}(t)
 	}
 
-	err = a.DB.Get(&stats.PendingMessages, "SELECT COUNT(*) FROM messages WHERE status = 0")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取待审核留言失败"})
-		return
-	}
-
-	today := time.Now().Format("2006-01-02")
-	err = a.DB.Get(&stats.TodayMessages, "SELECT COUNT(*) FROM messages WHERE DATE(created_at) = ?", today)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取今日留言失败"})
-		return
+	for i := 0; i < len(tasks); i++ {
+		if err := <-errChan; err != nil {
+			log.Printf("failed to get stats: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取数据统计失败"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, stats)
@@ -83,14 +123,68 @@ func (a *App) GetCaptcha(c *gin.Context) {
 
 func (a *App) ListProjects(c *gin.Context) {
 	projects := []models.Project{}
-	query := `SELECT id, name, summary, cover_url, external_url, sort_order, is_public, created_at, updated_at
-		FROM projects WHERE is_public = 1 ORDER BY sort_order DESC, id DESC`
-	if err := a.DB.Select(&projects, query); err != nil {
-		fmt.Printf("加载项目列表失败: %v\n", err)
+	q := strings.TrimSpace(c.Query("q"))
+	tag := strings.TrimSpace(c.Query("tag"))
+	page, limit, offset := parsePagination(c, 12, 100)
+
+	where := []string{"is_public = 1"}
+	args := []any{}
+	if q != "" {
+		like := "%" + q + "%"
+		where = append(where, "(name LIKE ? OR summary LIKE ? OR tags LIKE ?)")
+		args = append(args, like, like, like)
+	}
+	if tag != "" {
+		where = append(where, "FIND_IN_SET(?, tags)")
+		args = append(args, tag)
+	}
+	whereSQL := "WHERE " + strings.Join(where, " AND ")
+
+	var total int
+	countQuery := "SELECT COUNT(*) FROM projects " + whereSQL
+	if err := a.DB.Get(&total, countQuery, args...); err != nil {
+		log.Printf("加载项目统计失败: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载项目列表失败"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": projects})
+
+	query := `SELECT id, name, summary, cover_url, video_url, external_url, sort_order, is_public, view_count, tags, created_at, updated_at
+		FROM projects ` + whereSQL + ` ORDER BY sort_order DESC, id DESC LIMIT ? OFFSET ?`
+	queryArgs := append(append([]any{}, args...), limit, offset)
+	if err := a.DB.Select(&projects, query, queryArgs...); err != nil {
+		log.Printf("加载项目列表失败: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载项目列表失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": projects, "total": total, "page": page, "limit": limit})
+}
+
+func (a *App) ListProjectTags(c *gin.Context) {
+	rawTags := []string{}
+	if err := a.DB.Select(&rawTags, "SELECT tags FROM projects WHERE is_public = 1 AND tags IS NOT NULL AND tags <> ''"); err != nil {
+		log.Printf("加载项目标签失败: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载项目标签失败"})
+		return
+	}
+
+	tagSet := make(map[string]bool)
+	tags := []string{}
+	for _, raw := range rawTags {
+		for _, tag := range splitTags(raw) {
+			key := strings.ToLower(tag)
+			if tagSet[key] {
+				continue
+			}
+			tagSet[key] = true
+			tags = append(tags, tag)
+		}
+	}
+
+	sort.Slice(tags, func(i, j int) bool {
+		return strings.ToLower(tags[i]) < strings.ToLower(tags[j])
+	})
+
+	c.JSON(http.StatusOK, gin.H{"data": tags, "total": len(tags)})
 }
 
 func (a *App) GetProject(c *gin.Context) {
@@ -99,8 +193,11 @@ func (a *App) GetProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的 ID"})
 		return
 	}
+	if _, err := a.DB.Exec("UPDATE projects SET view_count = view_count + 1 WHERE id = ? AND is_public = 1", id); err != nil {
+		log.Printf("failed to update view_count: %v", err)
+	}
 	var project models.Project
-	query := `SELECT id, name, summary, cover_url, content_html, external_url, sort_order, is_public, created_at, updated_at
+	query := `SELECT id, name, summary, cover_url, video_url, content_html, external_url, sort_order, is_public, view_count, tags, created_at, updated_at
 		FROM projects WHERE id = ? AND is_public = 1`
 	if err := a.DB.Get(&project, query, id); err != nil {
 		if err == sql.ErrNoRows {
@@ -115,14 +212,22 @@ func (a *App) GetProject(c *gin.Context) {
 
 func (a *App) ListMessages(c *gin.Context) {
 	messages := []models.Message{}
+	page, limit, offset := parsePagination(c, 10, 50)
+
+	var total int
+	if err := a.DB.Get(&total, "SELECT COUNT(*) FROM messages WHERE status = 1"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
+		return
+	}
+
 	query := `SELECT id, nickname, contact, content, status, created_at
-		FROM messages WHERE status = 1 ORDER BY created_at DESC`
-	if err := a.DB.Select(&messages, query); err != nil {
+		FROM messages WHERE status = 1 ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	if err := a.DB.Select(&messages, query, limit, offset); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
 		return
 	}
 	attachReplies(a.DB, messages)
-	c.JSON(http.StatusOK, gin.H{"data": messages})
+	c.JSON(http.StatusOK, gin.H{"data": messages, "total": total, "page": page, "limit": limit})
 }
 
 func (a *App) CreateMessage(c *gin.Context) {
@@ -138,9 +243,9 @@ func (a *App) CreateMessage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求参数"})
 		return
 	}
-	payload.Nickname = strings.TrimSpace(payload.Nickname)
-	payload.Contact = strings.TrimSpace(payload.Contact)
-	payload.Content = strings.TrimSpace(payload.Content)
+	payload.Nickname = sanitizeText(payload.Nickname)
+	payload.Contact = sanitizeText(payload.Contact)
+	payload.Content = sanitizeText(payload.Content)
 	payload.CaptchaID = strings.TrimSpace(payload.CaptchaID)
 	payload.CaptchaAnswer = strings.TrimSpace(payload.CaptchaAnswer)
 	payload.Website = strings.TrimSpace(payload.Website)
@@ -219,7 +324,7 @@ func (a *App) AdminLogin(c *gin.Context) {
 		a.LoginGuard.Success(loginKey)
 	}
 
-	exp := time.Now().Add(12 * time.Hour)
+	exp := time.Now().Add(2 * time.Hour)
 	claims := jwt.MapClaims{
 		"sub": admin.ID,
 		"exp": exp.Unix(),
@@ -232,10 +337,44 @@ func (a *App) AdminLogin(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("session", signed, int(12*time.Hour.Seconds()), "/", "", a.Cfg.CookieSecure, true)
+	c.SetCookie("session", signed, int(2*time.Hour.Seconds()), "/", "", a.Cfg.CookieSecure, true)
 	c.JSON(http.StatusOK, gin.H{"message": "登录成功"})
 }
 
+
+func (a *App) AdminSession(c *gin.Context) {
+	cookie, err := c.Cookie("session")
+	if err != nil || cookie == "" {
+		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		return
+	}
+
+	token, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("invalid signing method")
+		}
+		return []byte(a.Cfg.JWTSecret), nil
+	})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		return
+	}
+
+	if exp, ok := claims["exp"].(float64); ok {
+		if time.Unix(int64(exp), 0).Before(time.Now()) {
+			c.JSON(http.StatusOK, gin.H{"logged_in": false})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"logged_in": true})
+}
 func (a *App) AdminLogout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("session", "", -1, "/", "", a.Cfg.CookieSecure, true)
@@ -244,14 +383,47 @@ func (a *App) AdminLogout(c *gin.Context) {
 
 func (a *App) AdminListMessages(c *gin.Context) {
 	messages := []models.Message{}
+	page, limit, offset := parsePagination(c, 20, 100)
+	statusParam := strings.TrimSpace(c.Query("status"))
+	q := strings.TrimSpace(c.Query("q"))
+
+	where := []string{}
+	args := []any{}
+	if statusParam != "" {
+		status, err := strconv.Atoi(statusParam)
+		if err != nil || status < 0 || status > 2 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的状态值"})
+			return
+		}
+		where = append(where, "status = ?")
+		args = append(args, status)
+	}
+	if q != "" {
+		like := "%" + q + "%"
+		where = append(where, "(nickname LIKE ? OR content LIKE ? OR contact LIKE ?)")
+		args = append(args, like, like, like)
+	}
+	whereSQL := ""
+	if len(where) > 0 {
+		whereSQL = "WHERE " + strings.Join(where, " AND ")
+	}
+
+	var total int
+	countQuery := "SELECT COUNT(*) FROM messages " + whereSQL
+	if err := a.DB.Get(&total, countQuery, args...); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
+		return
+	}
+
 	query := `SELECT id, nickname, contact, content, status, created_at, ip, ua
-		FROM messages ORDER BY created_at DESC`
-	if err := a.DB.Select(&messages, query); err != nil {
+		FROM messages ` + whereSQL + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	queryArgs := append(append([]any{}, args...), limit, offset)
+	if err := a.DB.Select(&messages, query, queryArgs...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
 		return
 	}
 	attachReplies(a.DB, messages)
-	c.JSON(http.StatusOK, gin.H{"data": messages})
+	c.JSON(http.StatusOK, gin.H{"data": messages, "total": total, "page": page, "limit": limit})
 }
 
 func (a *App) AdminUpdateMessage(c *gin.Context) {
@@ -317,7 +489,7 @@ func (a *App) AdminCreateReply(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的参数"})
 		return
 	}
-	payload.Content = strings.TrimSpace(payload.Content)
+	payload.Content = sanitizeText(payload.Content)
 	if payload.Content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "内容不能为空"})
 		return
@@ -403,13 +575,50 @@ func (a *App) AdminUploadImage(c *gin.Context) {
 
 func (a *App) AdminListProjects(c *gin.Context) {
 	projects := []models.Project{}
-	query := `SELECT id, name, summary, cover_url, content_html, external_url, sort_order, is_public, created_at, updated_at
-		FROM projects ORDER BY sort_order DESC, id DESC`
-	if err := a.DB.Select(&projects, query); err != nil {
+	page, limit, offset := parsePagination(c, 20, 100)
+	q := strings.TrimSpace(c.Query("q"))
+	tag := strings.TrimSpace(c.Query("tag"))
+	publicParam := strings.TrimSpace(c.Query("is_public"))
+
+	where := []string{}
+	args := []any{}
+	if publicParam != "" {
+		if publicParam != "0" && publicParam != "1" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的公开状态"})
+			return
+		}
+		where = append(where, "is_public = ?")
+		args = append(args, publicParam)
+	}
+	if q != "" {
+		like := "%" + q + "%"
+		where = append(where, "(name LIKE ? OR summary LIKE ? OR tags LIKE ?)")
+		args = append(args, like, like, like)
+	}
+	if tag != "" {
+		where = append(where, "FIND_IN_SET(?, tags)")
+		args = append(args, tag)
+	}
+	whereSQL := ""
+	if len(where) > 0 {
+		whereSQL = "WHERE " + strings.Join(where, " AND ")
+	}
+
+	var total int
+	countQuery := "SELECT COUNT(*) FROM projects " + whereSQL
+	if err := a.DB.Get(&total, countQuery, args...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载项目列表失败"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": projects})
+
+	query := `SELECT id, name, summary, cover_url, video_url, content_html, external_url, sort_order, is_public, view_count, tags, created_at, updated_at
+		FROM projects ` + whereSQL + ` ORDER BY sort_order DESC, id DESC LIMIT ? OFFSET ?`
+	queryArgs := append(append([]any{}, args...), limit, offset)
+	if err := a.DB.Select(&projects, query, queryArgs...); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载项目列表失败"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": projects, "total": total, "page": page, "limit": limit})
 }
 
 func (a *App) AdminCreateProject(c *gin.Context) {
@@ -418,20 +627,35 @@ func (a *App) AdminCreateProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的参数"})
 		return
 	}
-	payload.Name = strings.TrimSpace(payload.Name)
-	payload.Summary = strings.TrimSpace(payload.Summary)
+	payload.Name = sanitizeText(payload.Name)
+	payload.Summary = sanitizeText(payload.Summary)
 	payload.CoverURL = strings.TrimSpace(payload.CoverURL)
+	payload.VideoURL = strings.TrimSpace(payload.VideoURL)
 	payload.ExternalURL = strings.TrimSpace(payload.ExternalURL)
-	payload.ContentHTML = strings.TrimSpace(payload.ContentHTML)
+	payload.Tags = sanitizeText(payload.Tags)
+	payload.ContentHTML = sanitizeHTML(payload.ContentHTML)
+	payload.Tags = normalizeTags(payload.Tags)
 
 	if payload.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "名称必填"})
 		return
 	}
+	if !isSafeURL(payload.CoverURL, true) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "封面图链接无效"})
+		return
+	}
+	if !isSafeURL(payload.VideoURL, true) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "视频链接无效"})
+		return
+	}
+	if payload.ExternalURL != "" && !isSafeURL(payload.ExternalURL, false) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "外链无效"})
+		return
+	}
 
-	res, err := a.DB.Exec(`INSERT INTO projects (name, summary, cover_url, content_html, external_url, sort_order, is_public)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`, payload.Name, payload.Summary, payload.CoverURL, payload.ContentHTML,
-		payload.ExternalURL, payload.SortOrder, payload.IsPublic)
+	res, err := a.DB.Exec(`INSERT INTO projects (name, summary, cover_url, video_url, content_html, external_url, sort_order, is_public, tags)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, payload.Name, payload.Summary, payload.CoverURL, payload.VideoURL, payload.ContentHTML,
+		payload.ExternalURL, payload.SortOrder, payload.IsPublic, payload.Tags)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建失败"})
 		return
@@ -451,20 +675,35 @@ func (a *App) AdminUpdateProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的参数"})
 		return
 	}
-	payload.Name = strings.TrimSpace(payload.Name)
-	payload.Summary = strings.TrimSpace(payload.Summary)
+	payload.Name = sanitizeText(payload.Name)
+	payload.Summary = sanitizeText(payload.Summary)
 	payload.CoverURL = strings.TrimSpace(payload.CoverURL)
+	payload.VideoURL = strings.TrimSpace(payload.VideoURL)
 	payload.ExternalURL = strings.TrimSpace(payload.ExternalURL)
-	payload.ContentHTML = strings.TrimSpace(payload.ContentHTML)
+	payload.Tags = sanitizeText(payload.Tags)
+	payload.ContentHTML = sanitizeHTML(payload.ContentHTML)
+	payload.Tags = normalizeTags(payload.Tags)
 
 	if payload.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "名称必填"})
 		return
 	}
+	if !isSafeURL(payload.CoverURL, true) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "封面图链接无效"})
+		return
+	}
+	if !isSafeURL(payload.VideoURL, true) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "视频链接无效"})
+		return
+	}
+	if payload.ExternalURL != "" && !isSafeURL(payload.ExternalURL, false) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "外链无效"})
+		return
+	}
 
-	res, err := a.DB.Exec(`UPDATE projects SET name=?, summary=?, cover_url=?, content_html=?, external_url=?, sort_order=?, is_public=?
-		WHERE id = ?`, payload.Name, payload.Summary, payload.CoverURL, payload.ContentHTML,
-		payload.ExternalURL, payload.SortOrder, payload.IsPublic, id)
+	res, err := a.DB.Exec(`UPDATE projects SET name=?, summary=?, cover_url=?, video_url=?, content_html=?, external_url=?, sort_order=?, is_public=?, tags=?
+		WHERE id = ?`, payload.Name, payload.Summary, payload.CoverURL, payload.VideoURL, payload.ContentHTML,
+		payload.ExternalURL, payload.SortOrder, payload.IsPublic, payload.Tags, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新失败"})
 		return
@@ -520,4 +759,93 @@ func attachReplies(db *sqlx.DB, messages []models.Message) {
 			messages[idx].Replies = append(messages[idx].Replies, reply)
 		}
 	}
+}
+
+var (
+	htmlPolicy = func() *bluemonday.Policy {
+		policy := bluemonday.UGCPolicy()
+		policy.AllowImages()
+		policy.AllowAttrs("loading", "alt", "title").OnElements("img")
+		policy.AllowAttrs("target", "rel").OnElements("a")
+		return policy
+	}()
+	textPolicy = bluemonday.StrictPolicy()
+)
+
+func sanitizeText(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	return strings.TrimSpace(textPolicy.Sanitize(value))
+}
+
+func sanitizeHTML(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	return strings.TrimSpace(htmlPolicy.Sanitize(value))
+}
+
+func isSafeURL(raw string, allowEmpty bool) bool {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return allowEmpty
+	}
+	if strings.HasPrefix(raw, "//") {
+		return false
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	if parsed.IsAbs() {
+		scheme := strings.ToLower(parsed.Scheme)
+		return scheme == "http" || scheme == "https"
+	}
+	return strings.HasPrefix(raw, "/")
+}
+
+func normalizeTags(raw string) string {
+	tags := parseTags(raw, 12)
+	if len(tags) == 0 {
+		return ""
+	}
+	return strings.Join(tags, ",")
+}
+
+func splitTags(raw string) []string {
+	return parseTags(raw, 0)
+}
+
+func parseTags(raw string, limit int) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	replacer := strings.NewReplacer("，", ",", "、", ",", ";", ",", "；", ",", "|", ",", "\n", ",", "\t", ",")
+	raw = replacer.Replace(raw)
+	parts := strings.Split(raw, ",")
+	seen := make(map[string]bool)
+	tags := make([]string, 0, len(parts))
+	for _, part := range parts {
+		tag := strings.TrimSpace(part)
+		if tag == "" {
+			continue
+		}
+		if len([]rune(tag)) > 20 {
+			tag = string([]rune(tag)[:20])
+		}
+		key := strings.ToLower(tag)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		tags = append(tags, tag)
+		if limit > 0 && len(tags) >= limit {
+			break
+		}
+	}
+	return tags
 }

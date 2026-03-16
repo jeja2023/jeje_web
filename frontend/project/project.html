@@ -13,25 +13,35 @@
       <div class="logo">JEJE WEB</div>
       <nav>
         <a href="/">首页</a>
-        <a href="/messages">留言</a>
-        <a href="/admin">后台</a>
+        <a href="/messages">致信交流</a>
+        <a href="/admin">后台管理</a>
       </nav>
     </header>
 
-    <section class="section">
-      <div id="projectDetail" class="hero-card"></div>
-    </section>
+    <main class="container">
+      <section class="section animate-fade-in">
+        <div id="projectDetail">
+          <!-- 内容由 JS 动态生成 -->
+          <div class="text-center" style="padding: 100px 0;">
+            <div class="spinner" style="margin: 0 auto;"></div>
+            <p class="text-muted mt-2">正在为您加载作品详情...</p>
+          </div>
+        </div>
+      </section>
 
-    <section class="section">
-      <div class="banner">
-        <strong>想交流想法？</strong>
-        <span>欢迎到留言板写下你的建议。</span>
-        <a class="btn" href="/messages">前往留言</a>
-      </div>
-    </section>
+      <section class="section">
+        <div class="card" style="padding: 40px; background: var(--bg-offset); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;">
+          <div>
+            <h3 style="margin-bottom: 8px;">想就此作品进行交流？</h3>
+            <p class="text-muted">欢迎在留言板写下您的建议或合作意向。</p>
+          </div>
+          <a class="btn primary" href="/messages">前往对话</a>
+        </div>
+      </section>
+    </main>
 
     <footer>
-      <div>© 2026 JEJE WEB</div>
+      <p>© 2026 JEJE WEB</p>
     </footer>
 
     <script type="module" src="project.js"></script>

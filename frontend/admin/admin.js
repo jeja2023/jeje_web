@@ -1,5 +1,5 @@
 // 管理后台脚本 / Admin Script
-import { API_BASE, fetchJSON, formatDate, showToast, showModal } from "/globals/global.js";
+import { API_BASE, fetchJSON, formatDate, showToast, showModal, renderPagination } from "/globals/global.js";
 
 const loginCard = document.getElementById("loginCard");
 const loginForm = document.getElementById("loginForm");
@@ -8,8 +8,19 @@ const tabs = document.querySelectorAll(".tab");
 const tabMessages = document.getElementById("tab-messages");
 const tabProjects = document.getElementById("tab-projects");
 const adminMessageList = document.getElementById("adminMessageList");
+const messageSearch = document.getElementById("messageSearch");
+const messageStatusFilter = document.getElementById("messageStatusFilter");
+const messageSearchBtn = document.getElementById("messageSearchBtn");
+const messageResetBtn = document.getElementById("messageResetBtn");
+const messagePagination = document.getElementById("messagePagination");
 const replyForm = document.getElementById("replyForm");
 const projectList = document.getElementById("projectList");
+const projectSearch = document.getElementById("projectSearch");
+const projectTagFilter = document.getElementById("projectTagFilter");
+const projectPublicFilter = document.getElementById("projectPublicFilter");
+const projectSearchBtn = document.getElementById("projectSearchBtn");
+const projectResetBtn = document.getElementById("projectResetBtn");
+const projectPagination = document.getElementById("projectPagination");
 const projectForm = document.getElementById("projectForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const editor = document.getElementById("projectEditor");
@@ -21,17 +32,34 @@ const statsProjects = document.getElementById("stats-projects");
 const statsMessages = document.getElementById("stats-messages");
 const statsPending = document.getElementById("stats-pending");
 const statsToday = document.getElementById("stats-today");
+const statsViews = document.getElementById("stats-views");
 const tabDashboard = document.getElementById("tab-dashboard");
 
 const state = {
   messages: [],
   projects: [],
+  statsLoaded: false,
+  messageQuery: { page: 1, limit: 20, q: "", status: "" },
+  projectQuery: { page: 1, limit: 20, q: "", tag: "", is_public: "" },
 };
 
 let savedRange = null;
 
 function isAuthError(err) {
-  return err && /unauthorized|session/i.test(err.message);
+  // 适配中英文授权错误提示 / Support both Chinese and English auth errors
+  if (!err) return false;
+  if (err.status === 401 || err.status === 403) return true;
+  return /unauthorized|session|未登录|会话无效|登录已过期|未授权/i.test(err.message);
+}
+
+function buildQueryParams(params) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== "" && value !== null && value !== undefined) {
+      query.set(key, String(value));
+    }
+  });
+  return query.toString();
 }
 
 function statusLabel(status) {
@@ -40,9 +68,33 @@ function statusLabel(status) {
   return "待审核";
 }
 
+function splitTags(raw) {
+  if (!raw) return [];
+  return String(raw)
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+function renderTagList(tags) {
+  if (!tags || !tags.length) return null;
+  const wrap = document.createElement("div");
+  wrap.className = "tag-list";
+  tags.forEach((tag) => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip";
+    chip.textContent = tag;
+    wrap.appendChild(chip);
+  });
+  return wrap;
+}
+
 function setLoggedIn(loggedIn) {
   loginCard.style.display = loggedIn ? "none" : "block";
   adminPanel.style.display = loggedIn ? "block" : "none";
+  if (!loggedIn) {
+    state.statsLoaded = false;
+  }
 }
 
 function showTab(name) {
@@ -86,7 +138,7 @@ async function updateMessageStatus(id, status) {
       body: JSON.stringify({ status }),
     });
     showToast("状态更新成功", "success");
-    await loadMessages();
+    await loadMessages(state.messageQuery.page);
   } catch (err) {
     showToast(`更新失败: ${err.message}`, "error");
   }
@@ -102,7 +154,7 @@ async function deleteMessage(id) {
           method: "DELETE",
         });
         showToast("留言已删除", "success");
-        await loadMessages();
+        await loadMessages(state.messageQuery.page);
       } catch (err) {
         showToast(`删除失败: ${err.message}`, "error");
       }
@@ -120,7 +172,7 @@ async function deleteProject(id) {
           method: "DELETE",
         });
         showToast("项目已删除", "success");
-        await loadProjects();
+        await loadProjects(state.projectQuery.page);
       } catch (err) {
         showToast(`删除失败: ${err.message}`, "error");
       }
@@ -191,19 +243,36 @@ function renderAdminMessage(msg) {
   return item;
 }
 
-async function loadMessages() {
+async function loadMessages(page = state.messageQuery.page) {
   adminMessageList.textContent = "加载中...";
   try {
-    const data = await fetchJSON(`${API_BASE}/admin/messages`);
+    state.messageQuery.page = page;
+    const query = buildQueryParams({
+      page: state.messageQuery.page,
+      limit: state.messageQuery.limit,
+      q: state.messageQuery.q,
+      status: state.messageQuery.status,
+    });
+    const data = await fetchJSON(`${API_BASE}/admin/messages?${query}`);
     state.messages = data.data || [];
     adminMessageList.innerHTML = "";
     if (!state.messages.length) {
       adminMessageList.innerHTML = `<div class="message">暂无留言。</div>`;
+      if (messagePagination) messagePagination.innerHTML = "";
       return;
     }
     state.messages.forEach((msg) => {
       adminMessageList.appendChild(renderAdminMessage(msg));
     });
+    if (messagePagination) {
+      renderPagination({
+        container: messagePagination,
+        total: data.total || state.messages.length,
+        current: data.page || state.messageQuery.page,
+        limit: data.limit || state.messageQuery.limit,
+        onPageChange: loadMessages,
+      });
+    }
   } catch (err) {
     if (isAuthError(err)) {
       throw err;
@@ -221,7 +290,7 @@ function renderProject(project) {
 
   const meta = document.createElement("div");
   meta.className = "meta";
-  meta.textContent = `#${project.id} ${project.name}`;
+  meta.textContent = `#${project.id} ${project.name} · ${project.view_count || 0} 次浏览`;
 
   const status = document.createElement("span");
   status.className = `pill status-${project.is_public ? 1 : 2}`;
@@ -232,6 +301,8 @@ function renderProject(project) {
   const summary = document.createElement("div");
   summary.textContent = project.summary || "暂无简介";
 
+  const tags = renderTagList(splitTags(project.tags));
+
   const actions = document.createElement("div");
   actions.className = "message-actions";
   actions.append(
@@ -240,7 +311,9 @@ function renderProject(project) {
       projectForm.name.value = project.name || "";
       projectForm.summary.value = project.summary || "";
       projectForm.cover_url.value = project.cover_url || "";
+      projectForm.video_url.value = project.video_url || "";
       projectForm.external_url.value = project.external_url || "";
+      projectForm.tags.value = project.tags || "";
       projectForm.sort_order.value = project.sort_order || 0;
       projectForm.is_public.value = project.is_public ? "1" : "0";
       editor.innerHTML = project.content_html || "";
@@ -251,23 +324,45 @@ function renderProject(project) {
     createActionButton("删除", () => deleteProject(project.id), { danger: true })
   );
 
-  item.append(metaRow, summary, actions);
+  if (tags) {
+    item.append(metaRow, summary, tags, actions);
+  } else {
+    item.append(metaRow, summary, actions);
+  }
   return item;
 }
 
-async function loadProjects() {
+async function loadProjects(page = state.projectQuery.page) {
   projectList.textContent = "加载中...";
   try {
-    const data = await fetchJSON(`${API_BASE}/admin/projects`);
+    state.projectQuery.page = page;
+    const query = buildQueryParams({
+      page: state.projectQuery.page,
+      limit: state.projectQuery.limit,
+      q: state.projectQuery.q,
+      tag: state.projectQuery.tag,
+      is_public: state.projectQuery.is_public,
+    });
+    const data = await fetchJSON(`${API_BASE}/admin/projects?${query}`);
     state.projects = data.data || [];
     projectList.innerHTML = "";
     if (!state.projects.length) {
       projectList.innerHTML = `<div class="message">暂无项目。</div>`;
+      if (projectPagination) projectPagination.innerHTML = "";
       return;
     }
     state.projects.forEach((project) => {
       projectList.appendChild(renderProject(project));
     });
+    if (projectPagination) {
+      renderPagination({
+        container: projectPagination,
+        total: data.total || state.projects.length,
+        current: data.page || state.projectQuery.page,
+        limit: data.limit || state.projectQuery.limit,
+        onPageChange: loadProjects,
+      });
+    }
   } catch (err) {
     if (isAuthError(err)) {
       throw err;
@@ -283,25 +378,48 @@ async function loadStats() {
     if (statsMessages) statsMessages.textContent = stats.total_messages;
     if (statsPending) statsPending.textContent = stats.pending_messages;
     if (statsToday) statsToday.textContent = stats.today_messages;
+    if (statsViews) statsViews.textContent = stats.total_views;
+    state.statsLoaded = true;
   } catch (err) {
-    console.error("加载统计数据失败:", err);
+    if (!isAuthError(err)) {
+      console.error("加载统计数据失败:", err);
+    }
+    throw err; // 向上传递错误，以便 loadAdminData 处理
   }
 }
 
 async function loadAdminData() {
   try {
+    // 隐藏主面板，防止数据加载中闪烁
+    adminPanel.style.display = "none";
+    
     await loadStats();
-    await loadMessages();
-    await loadProjects();
+    await loadMessages(state.messageQuery.page);
+    await loadProjects(state.projectQuery.page);
+    
+    // 全部加载成功后显示
     setLoggedIn(true);
+    showTab("dashboard");
   } catch (err) {
     if (isAuthError(err)) {
       setLoggedIn(false);
-      showToast("请先登录管理员账号", "warning");
       return;
     }
-    showToast(`加载失败：${err.name}`, "error");
+    showToast(`加载失败：${err.message}`, "error");
   }
+}
+
+async function checkSession() {
+  try {
+    const data = await fetchJSON(`${API_BASE}/admin/session`);
+    if (data && data.logged_in) {
+      await loadAdminData();
+      return;
+    }
+  } catch (err) {
+    // ignore, fall back to login panel
+  }
+  setLoggedIn(false);
 }
 
 function saveSelection() {
@@ -393,7 +511,7 @@ replyForm.addEventListener("submit", async (event) => {
     });
     showToast("回复成功", "success");
     replyForm.reset();
-    await loadMessages();
+    await loadMessages(state.messageQuery.page);
   } catch (err) {
     showToast(`回复失败：${err.message}`, "error");
   }
@@ -410,7 +528,9 @@ projectForm.addEventListener("submit", async (event) => {
     name: payload.name?.trim(),
     summary: payload.summary?.trim(),
     cover_url: payload.cover_url?.trim(),
+    video_url: payload.video_url?.trim(),
     external_url: payload.external_url?.trim(),
+    tags: payload.tags?.trim(),
     sort_order: Number(payload.sort_order || 0),
     is_public: payload.is_public === "1",
     content_html: contentHtml.value,
@@ -433,7 +553,7 @@ projectForm.addEventListener("submit", async (event) => {
     projectForm.reset();
     editor.innerHTML = "";
     contentHtml.value = "";
-    await loadProjects();
+    await loadProjects(state.projectQuery.page);
   } catch (err) {
     showToast(`提交失败：${err.message}`, "error");
   }
@@ -486,9 +606,78 @@ if (imageUploadBtn && imageUploadInput) {
   });
 }
 
+const coverUrlInput = projectForm.querySelector('input[name="cover_url"]');
+if (coverUrlInput) {
+  coverUrlInput.addEventListener("input", (e) => {
+    const url = e.target.value.trim();
+    let preview = document.getElementById("coverPreview");
+    if (!preview) {
+      preview = document.createElement("img");
+      preview.id = "coverPreview";
+      preview.style.cssText = "width:100%; height:120px; object-fit:cover; border-radius:12px; margin-top:10px; border:1px solid var(--line);";
+      coverUrlInput.after(preview);
+    }
+    preview.src = url || "";
+    preview.style.display = url ? "block" : "none";
+  });
+}
+
+if (messageSearchBtn) {
+  messageSearchBtn.addEventListener("click", () => {
+    state.messageQuery.q = messageSearch ? messageSearch.value.trim() : "";
+    state.messageQuery.status = messageStatusFilter ? messageStatusFilter.value : "";
+    loadMessages(1);
+  });
+}
+
+if (messageResetBtn) {
+  messageResetBtn.addEventListener("click", () => {
+    if (messageSearch) messageSearch.value = "";
+    if (messageStatusFilter) messageStatusFilter.value = "";
+    state.messageQuery.q = "";
+    state.messageQuery.status = "";
+    loadMessages(1);
+  });
+}
+
+if (projectSearchBtn) {
+  projectSearchBtn.addEventListener("click", () => {
+    state.projectQuery.q = projectSearch ? projectSearch.value.trim() : "";
+    state.projectQuery.tag = projectTagFilter ? projectTagFilter.value.trim() : "";
+    state.projectQuery.is_public = projectPublicFilter ? projectPublicFilter.value : "";
+    loadProjects(1);
+  });
+}
+
+if (projectResetBtn) {
+  projectResetBtn.addEventListener("click", () => {
+    if (projectSearch) projectSearch.value = "";
+    if (projectTagFilter) projectTagFilter.value = "";
+    if (projectPublicFilter) projectPublicFilter.value = "";
+    state.projectQuery.q = "";
+    state.projectQuery.tag = "";
+    state.projectQuery.is_public = "";
+    loadProjects(1);
+  });
+}
+
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => showTab(tab.dataset.tab));
 });
 
-showTab("dashboard");
-loadAdminData();
+checkSession();
+
+// 定期检查管理员会话状态 (每 5 分钟一次)
+setInterval(async () => {
+  // 仅在当前处于登录状态界面时检查
+  if (adminPanel.style.display !== "none") {
+    try {
+      await fetchJSON(`${API_BASE}/admin/stats`);
+    } catch (err) {
+      if (isAuthError(err)) {
+        setLoggedIn(false);
+        showToast("登录已过期或服务器已重启，请重新登录", "warning");
+      }
+    }
+  }
+}, 5 * 60 * 1000);

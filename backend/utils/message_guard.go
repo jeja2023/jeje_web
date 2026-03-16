@@ -1,4 +1,4 @@
-// 留言保护 / Message Guard
+﻿// 留言保护 / Message Guard
 package utils
 
 import (
@@ -10,6 +10,7 @@ type MessageGuard struct {
 	mu       sync.Mutex
 	cooldown time.Duration
 	lastSeen map[string]time.Time
+	lastCleanup time.Time
 }
 
 func NewMessageGuard(cooldown time.Duration) *MessageGuard {
@@ -30,6 +31,15 @@ func (g *MessageGuard) Allow(key string) bool {
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	if g.lastCleanup.IsZero() || now.Sub(g.lastCleanup) > g.cooldown {
+		for key, t := range g.lastSeen {
+			if now.Sub(t) > g.cooldown {
+				delete(g.lastSeen, key)
+			}
+		}
+		g.lastCleanup = now
+	}
 
 	last, ok := g.lastSeen[key]
 	if ok && now.Sub(last) < g.cooldown {

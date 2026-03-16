@@ -1,23 +1,85 @@
-/* ========== 首页专属样式 ========== */
+/* ========== 首页专属样式 / Home Custom Styles ========== */
 
-/* 首页 Hero 区域 */
-/* 首页样式 / Home CSS */
 .hero {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 32px;
-  padding: 64px 6vw 40px;
+  min-height: 500px;
+  display: flex;
   align-items: center;
+  justify-content: flex-start;
+  padding: 120px 0;
 }
 
-.hero h1 {
-  font-size: clamp(2rem, 3.6vw, 3.5rem);
-  margin: 0 0 16px;
+.hero-content h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
 }
 
-.hero p {
-  margin: 0 0 24px;
+.hero-content p {
+  font-size: 1.25rem;
+  line-height: 1.6;
   color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1.7;
+}
+
+/* 搜索框美化 */
+.search-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+
+.search-wrap input {
+  padding-left: 40px;
+  background: var(--bg-offset);
+  border-radius: var(--radius-full);
+}
+
+.search-wrap::before {
+  content: "🔍";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  opacity: 0.4;
+}
+
+/* 标签筛选优化 */
+.tag-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tag-filter {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag-filter:hover {
+  border-color: var(--line-strong);
+  background: var(--bg-offset);
+}
+
+.tag-filter.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .hero {
+    padding: 60px 0;
+    text-align: center;
+    justify-content: center;
+  }
 }

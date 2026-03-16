@@ -1,4 +1,4 @@
-// 验证码工具 / Captcha Utility
+﻿// 验证码工具 / Captcha Utility
 package utils
 
 import (

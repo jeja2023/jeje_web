@@ -18,8 +18,18 @@
 
 ### 项目列表
 - `GET /api/projects`
+- Query 参数：
+  - `page` 页码（默认 1）
+  - `limit` 每页数量（默认 12）
+  - `q` 关键词（可选）
+  - `tag` 标签筛选（可选）
 - 响应示例：
-  - `{"data":[...]}`
+  - `{"data":[...],"total":100,"page":1,"limit":12}`
+
+### 项目标签列表
+- `GET /api/projects/tags`
+- 响应示例：
+  - `{"data":["前端","Go"],"total":2}`
 
 ### 项目详情
 - `GET /api/projects/:id`
@@ -45,17 +55,35 @@
 - Body JSON：`{"username":"admin","password":"***"}`
 - 成功会写入 `session` Cookie
 
+### 管理员会话
+- `GET /api/admin/session`
+- 响应示例：`{"logged_in":true|false}`
+
+### 管理员统计
+- `GET /api/admin/stats`
+
 ### 管理员退出
 - `POST /api/admin/logout`
 
 ### 留言管理
 - `GET /api/admin/messages`
+- Query 参数：
+  - `page` 页码
+  - `limit` 每页数量
+  - `q` 关键词（昵称/内容/联系方式）
+  - `status` 状态（0/1/2）
 - `PATCH /api/admin/messages/:id` Body JSON：`{"status":0|1|2}`
 - `DELETE /api/admin/messages/:id`
 - `POST /api/admin/messages/:id/replies` Body JSON：`{"content":"..."}`
 
 ### 项目管理
 - `GET /api/admin/projects`
+- Query 参数：
+  - `page` 页码
+  - `limit` 每页数量
+  - `q` 关键词（名称/简介）
+  - `tag` 标签筛选
+  - `is_public` 公开状态（0/1）
 - `POST /api/admin/projects`
 - `PUT /api/admin/projects/:id`
 - `DELETE /api/admin/projects/:id`
@@ -65,6 +93,7 @@
   - `cover_url` 可选
   - `content_html` 可选（支持 HTML）
   - `external_url` 可选
+  - `tags` 可选（逗号分隔）
   - `sort_order` 数字（大在前）
   - `is_public` 布尔值
 

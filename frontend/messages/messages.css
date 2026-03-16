@@ -1,48 +1,140 @@
 /* 留言板样式 / Messages CSS */
-/* ========== 留言页专属样式 ========== */
+/* ========== 针对留言板页面的布局优化 ========== */
 
-/* 留言卡片 */
-.message {
-  background: #fff;
-  border-radius: 16px;
-  padding: 16px;
+.message-page-grid {
+  grid-template-columns: 1fr 1.5fr;
+  align-items: flex-start;
+  gap: 64px;
+}
+
+@media (max-width: 992px) {
+  .message-page-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+}
+
+/* ========== 表单系统美化 ========== */
+.form-card {
+  padding: 32px;
+  background: var(--bg);
   border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 100px;
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-.message .meta {
-  color: var(--muted);
+.small-label {
   font-size: 0.85rem;
-  margin-bottom: 8px;
-}
-
-/* 管理员回复 */
-.reply {
-  margin-top: 10px;
-  padding: 10px;
-  border-left: 3px solid var(--accent);
-  background: #fff9f2;
-  border-radius: 8px;
+  font-weight: 500;
+  margin-left: 4px;
 }
 
 /* 验证码区域 */
 .captcha-box {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px dashed var(--line);
-  background: #fffef9;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-offset);
+}
+
+.captcha-question {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--ink);
 }
 
 .captcha-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+}
+
+.captcha-row input {
+  flex: 1;
+}
+
+/* ========== 留言列表美化 ========== */
+.message {
+  padding: 24px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+  animation: slideInUp 0.5s ease backwards;
+}
+
+.message:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+}
+
+.message .meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--subtle);
+}
+
+.message .nickname {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.message .content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+/* 管理员回复 */
+.reply {
+  margin-top: 16px;
+  padding: 16px;
+  border-left: 3px solid var(--ink);
+  background: var(--bg-offset);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: 0.95rem;
+}
+
+.reply-header {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* 防机器人蜜罐 */
 .honeypot {
-  display: none;
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
 }
+
+/* 动画定义 */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

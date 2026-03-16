@@ -1,4 +1,4 @@
-// 全局脚本 / Global Script
+﻿// 全局脚本 / Global Script
 export const API_BASE = "/api";
 
 export async function fetchJSON(url, options = { headers: {} }) {
@@ -13,19 +13,32 @@ export async function fetchJSON(url, options = { headers: {} }) {
 
   if (!res.ok) {
     let message = "请求失败";
+    let data = null;
     try {
-      const data = await res.json();
+      data = await res.json();
       message = data.error || message;
     } catch (err) {
       message = message;
     }
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = res.status;
+    error.data = data;
+    throw error;
   }
 
   if (res.status === 204) {
     return null;
   }
   return res.json();
+}
+
+export function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function formatDate(value) {

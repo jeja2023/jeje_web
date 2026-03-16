@@ -1,19 +1,63 @@
-/* 项目详情样式 / Project CSS */
-/* ========== 项目详情页专属样式 ========== */
+/* ========== 项目详情页专属样式 / Project Detail ========== */
 
-/* 项目详情内容区域 */
-#projectDetail h1 {
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  margin: 0 0 12px;
+.project-header {
+  margin-bottom: 48px;
+  text-align: center;
 }
 
-#projectDetail img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 12px 0;
+.project-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin-bottom: 24px;
 }
 
-#projectDetail p {
+.project-summary-box {
+  font-size: 1.25rem;
+  line-height: 1.6;
   color: var(--muted);
-  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 auto 32px;
+}
+
+.project-visuals {
+  margin: 48px 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-offset);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+}
+
+.project-video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.project-image {
+  width: 100%;
+  display: block;
+}
+
+.project-content {
+  max-width: 800px;
+  margin: 64px auto;
+  font-size: 1.15rem;
+  line-height: 1.8;
+}
+
+.project-content img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin: 32px 0;
+}
+
+.project-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--line);
 }

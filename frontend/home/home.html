@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JEJE WEB | 简洁、现代的个人空间</title>
     <meta name="description" content="JEJE WEB 是一个采用 Go + Vanilla JS 构建的极简个人网站，展示个人项目作品、技术分享及生活感悟。" />
-    <meta name="keywords" content="个人网站, 个人博客, 项目展示, Go, Gin, JavaScript, 技术分享" />
+    <meta name="keywords" content="个人网站, 个人博客, 项目展示, 技术分享" />
     <link rel="stylesheet" href="/globals/global.css" />
     <link rel="stylesheet" href="home.css" />
   </head>
@@ -14,52 +14,55 @@
     <header>
       <div class="logo">JEJE WEB</div>
       <nav>
-        <a href="/">首页</a>
-        <a href="#projects">项目</a>
-        <a href="/messages">留言</a>
-        <a href="/admin">后台</a>
+        <a href="/" class="active">首页</a>
+        <a href="#projects">项目作品</a>
+        <a href="/messages">致信交流</a>
+        <a href="/admin">后台管理</a>
       </nav>
     </header>
 
-    <section class="hero">
-      <div>
-        <h1>个人网站</h1>
-        <p>
-          这里是我的个人空间。你可以查看我的项目作品、技术分享，并在这里留言交流。
-        </p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <a class="btn primary" href="#projects">浏览项目</a>
-          <a class="btn" href="/messages">留言反馈</a>
+    <main class="container">
+      <section class="hero section animate-fade-in">
+        <div class="hero-content">
+          <h1>交付价值，<br/>探索设计的边界</h1>
+          <p class="mt-4 text-muted" style="max-width: 600px; font-size: 1.1rem;">
+            专注于打造极致的数字产品体验。在这里，我将分享开发过的产品介绍与技术沉淀，通过设计与技术的结合，为用户创造非凡价值。
+          </p>
+          <div class="mt-4 flex gap-2">
+            <a class="btn primary" href="#projects">查看作品</a>
+            <a class="btn" href="/messages">联系我</a>
+          </div>
         </div>
-      </div>
-      <div class="hero-card">
-        <div class="tag">更新速览</div>
-        <h2>轻量前后端分离架构</h2>
-        <p class="notice">
-          Go + Gin 提供 API，原生 JS 多页展示和交互。
-        </p>
-        <div class="banner">
-          <strong>特性</strong>
-          <span>项目展示 / 图文介绍 / 留言互动 / 管理回复</span>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="section-title">精选作品</h2>
+          <div class="search-wrap">
+            <input id="projectSearchInput" placeholder="搜索项目..." />
+          </div>
         </div>
-      </div>
-    </section>
+        
+        <div id="projectTagList" class="tag-filter-list mb-4"></div>
+        <div id="projectGrid" class="grid"></div>
+        <div id="projectPagination" class="mt-4"></div>
+      </section>
 
-    <section id="projects" class="section">
-      <h2 class="section-title">项目展示</h2>
-      <div id="projectGrid" class="grid"></div>
-    </section>
-
-    <section class="section">
-      <div class="banner">
-        <strong>想了解更多？</strong>
-        <span>点击项目卡片进入详情页，查看更多图文介绍。</span>
-      </div>
-    </section>
+      <section class="section text-center">
+        <div class="card" style="padding: 60px; background: var(--bg-offset);">
+          <h3>对我的项目感兴趣？</h3>
+          <p class="text-muted mt-2">欢迎在留言板分享您的想法，或通过详情页深入了解每一个产品背后的细节。</p>
+          <div class="mt-4">
+            <a href="/messages" class="btn primary">前往留言板</a>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <footer>
-      <div>© 2026 JEJE WEB. Powered by Go + MySQL.</div>
+      <p>© 2026 JEJE WEB. 秉持简洁、专业的个人空间.</p>
     </footer>
+
 
     <script type="module" src="home.js"></script>
   </body>

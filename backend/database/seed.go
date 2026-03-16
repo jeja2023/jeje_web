@@ -1,4 +1,4 @@
-// 数据库初始化 / Database Seed
+﻿// 数据库初始化 / Database Seed
 package database
 
 import (

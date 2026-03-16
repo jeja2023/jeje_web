@@ -1,130 +1,174 @@
-<!-- 管理后台 HTML / Admin HTML -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>管理后台 - JEJE WEB</title>
+    <title>系统管理 - JEJE WEB</title>
     <meta name="robots" content="noindex, nofollow" />
     <link rel="stylesheet" href="/globals/global.css" />
     <link rel="stylesheet" href="admin.css" />
-  </head>
-  <body>
+</head>
+<body>
     <header>
-      <div class="logo">JEJE WEB</div>
-      <nav>
-        <a href="/">首页</a>
-        <a href="/messages">留言</a>
-      </nav>
+        <div class="logo">JEJE WEB</div>
+        <nav>
+            <a href="/">预览首页</a>
+            <a href="/messages">致信交流</a>
+        </nav>
     </header>
 
-    <section class="section">
-      <div class="form-card" id="loginCard">
-        <h2>管理员登录</h2>
-        <form id="loginForm">
-          <input name="username" placeholder="账号" required />
-          <input name="password" placeholder="密码" type="password" required />
-          <button class="btn primary" type="submit">登录</button>
-        </form>
-      </div>
+    <main class="container">
+        <!-- 登录区块 -->
+        <section class="section" id="loginCard">
+            <div class="form-card" style="max-width: 400px; margin: 0 auto;">
+                <h2 class="text-center mb-4">系统管理登录</h2>
+                <form id="loginForm">
+                    <div class="mt-2 text-muted" style="font-size: 0.85rem;">账号</div>
+                    <input name="username" placeholder="管理员账号" required />
+                    <div class="mt-2 text-muted" style="font-size: 0.85rem;">密钥</div>
+                    <input name="password" placeholder="访问密钥" type="password" required />
+                    <button class="btn primary mt-4" type="submit" style="width: 100%;">确认进入</button>
+                </form>
+            </div>
+        </section>
 
-      <div id="adminPanel" style="display: none;">
-        <div class="tabs-row">
-          <div class="tabs">
-            <button class="tab active" data-tab="dashboard">控制面板</button>
-            <button class="tab" data-tab="messages">留言管理</button>
-            <button class="tab" data-tab="projects">项目管理</button>
-          </div>
-          <button id="logoutBtn" class="btn small" type="button">退出登录</button>
-        </div>
-
-        <div id="tab-dashboard">
-          <div class="stats-grid">
-            <div class="stats-card">
-              <div class="stats-label">项目总数</div>
-              <div class="stats-value" id="stats-projects">-</div>
-            </div>
-            <div class="stats-card">
-              <div class="stats-label">留言总数</div>
-              <div class="stats-value" id="stats-messages">-</div>
-            </div>
-            <div class="stats-card">
-              <div class="stats-label">待审留言</div>
-              <div class="stats-value highlight" id="stats-pending">-</div>
-            </div>
-            <div class="stats-card">
-              <div class="stats-label">今日新增</div>
-              <div class="stats-value" id="stats-today">-</div>
-            </div>
-          </div>
-          <div class="banner mt-4">
-            <strong>欢迎回来，管理员。</strong>
-            <span>上方是您网站的运行概况，点击标签页可进行详细管理。</span>
-          </div>
-        </div>
-
-        <div id="tab-messages" class="admin-grid" style="display: none;">
-          <div>
-            <h3>留言列表</h3>
-            <div id="adminMessageList" class="list"></div>
-          </div>
-          <div class="form-card">
-            <h3>回复留言</h3>
-            <form id="replyForm">
-              <input name="messageId" placeholder="留言ID" required />
-              <textarea name="content" placeholder="回复内容" required></textarea>
-              <button class="btn primary" type="submit">发送回复</button>
-            </form>
-          </div>
-        </div>
-
-        <div id="tab-projects" style="display: none;">
-          <div class="admin-grid">
-            <div>
-              <h3>项目列表</h3>
-              <div id="projectList" class="list"></div>
-            </div>
-            <div class="form-card">
-              <h3>新建 / 更新项目</h3>
-              <form id="projectForm">
-                <input name="id" placeholder="项目ID (更新时填写)" />
-                <input name="name" placeholder="项目名称" required />
-                <input name="summary" placeholder="简介" />
-                <input name="cover_url" placeholder="封面图 URL" />
-                <input name="external_url" placeholder="外链" />
-                <input name="sort_order" placeholder="排序 (数字大在前)" type="number" value="0" />
-                <select name="is_public">
-                  <option value="1">公开</option>
-                  <option value="0">隐藏</option>
-                </select>
-                <div class="editor">
-                  <div class="editor-toolbar">
-                    <button class="btn small" type="button" data-cmd="bold">加粗</button>
-                    <button class="btn small" type="button" data-cmd="italic">斜体</button>
-                    <button class="btn small" type="button" data-cmd="underline">下划线</button>
-                    <button class="btn small" type="button" data-cmd="h2">标题</button>
-                    <button class="btn small" type="button" data-cmd="ul">无序列表</button>
-                    <button class="btn small" type="button" data-cmd="ol">有序列表</button>
-                    <button class="btn small" type="button" data-cmd="link">插入链接</button>
-                    <button class="btn small" type="button" id="imageUploadBtn">上传图片</button>
-                    <input type="file" id="imageUploadInput" accept="image/*" hidden />
-                  </div>
-                  <div id="projectEditor" class="editor-body" contenteditable="true" spellcheck="false"></div>
-                  <textarea name="content_html" id="contentHtml" class="editor-textarea"></textarea>
+        <!-- 管理主面板 -->
+        <section class="section" id="adminPanel" style="display: none;">
+            <div class="tabs-row flex justify-between items-center mb-4">
+                <div class="tabs flex gap-2">
+                    <button class="tab" data-tab="dashboard">运行概览</button>
+                    <button class="tab" data-tab="messages">来信管理</button>
+                    <button class="tab active" data-tab="projects">作品维护</button>
                 </div>
-                <button class="btn primary" type="submit">提交</button>
-              </form>
+                <button id="logoutBtn" class="btn small" type="button">安全退出</button>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
+
+            <!-- 控制面板视图 -->
+            <div id="tab-dashboard" style="display: none;">
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="card p-4 text-center">
+                        <div class="text-muted" style="font-size: 0.85rem;">作品总计</div>
+                        <div id="stats-projects" style="font-size: 2rem; font-weight: 700;">-</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-muted" style="font-size: 0.85rem;">累计来信</div>
+                        <div id="stats-messages" style="font-size: 2rem; font-weight: 700;">-</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-muted" style="font-size: 0.85rem;">等待审核</div>
+                        <div id="stats-pending" style="font-size: 2rem; font-weight: 700; color: var(--error);">-</div>
+                    </div>
+                    <div class="card p-4 text-center">
+                        <div class="text-muted" style="font-size: 0.85rem;">浏览总数</div>
+                        <div id="stats-views" style="font-size: 2rem; font-weight: 700;">-</div>
+                    </div>
+                </div>
+                <div class="card mt-4" style="padding: 40px; background: var(--bg-offset);">
+                    <strong>系统通知</strong>
+                    <p class="text-muted mt-2">欢迎回来，管理员。当前网站运行状态良好，点击上方标签切换管理模块。</p>
+                </div>
+            </div>
+
+            <!-- 留言管理视图 -->
+            <div id="tab-messages" class="admin-grid" style="display: none;">
+                <div class="flex flex-column gap-3">
+                    <div class="flex justify-between items-center">
+                        <h3>来信列表</h3>
+                        <div class="flex gap-2">
+                            <input id="messageSearch" placeholder="搜索关键词..." style="max-width: 200px;" />
+                            <select id="messageStatusFilter" style="width: auto;">
+                                <option value="">全部</option>
+                                <option value="0">待审</option>
+                                <option value="1">公开</option>
+                                <option value="2">存档</option>
+                            </select>
+                            <button id="messageSearchBtn" class="btn small">筛选</button>
+                            <button id="messageResetBtn" class="btn small">重置</button>
+                        </div>
+                    </div>
+                    <div id="adminMessageList" class="list"></div>
+                    <div id="messagePagination"></div>
+                    
+                    <div class="form-card mt-4">
+                        <h3>快速回复</h3>
+                        <form id="replyForm">
+                            <input name="messageId" placeholder="留言ID" required />
+                            <textarea name="content" placeholder="输入回复内容..." required></textarea>
+                            <button class="btn primary mt-2" type="submit">提交回复</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 作品维护视图 -->
+            <div id="tab-projects">
+                <div class="admin-grid">
+                    <div class="flex flex-column gap-3">
+                        <div class="flex justify-between items-center">
+                            <h3>全量作品</h3>
+                            <div class="flex gap-2">
+                                <input id="projectSearch" placeholder="名称/标签..." style="max-width: 200px;" />
+                                <button id="projectSearchBtn" class="btn small">搜索</button>
+                                <button id="projectResetBtn" class="btn small">重置</button>
+                            </div>
+                        </div>
+                        <div id="projectList" class="list"></div>
+                        <div id="projectPagination"></div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3>编辑作品详情</h3>
+                        <form id="projectForm">
+                            <input name="id" type="hidden" />
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">作品名称</label>
+                                <input name="name" placeholder="请输入名称" required /></div>
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">精简介绍</label>
+                                <input name="summary" placeholder="一句话描述" /></div>
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">封面图片链接</label>
+                                <input name="cover_url" placeholder="URL" /></div>
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">视频演示链接 (MP4/WebM)</label>
+                                <input name="video_url" placeholder="URL" /></div>
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">在线链接/源码地址</label>
+                                <input name="external_url" placeholder="URL" /></div>
+                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">分类标签 (逗号分隔)</label>
+                                <input name="tags" placeholder="如: Web, 开源" /></div>
+                            
+                            <div class="flex gap-2 mt-2">
+                                <div style="flex:1;"><label class="text-muted" style="font-size: 0.8rem;">排序</label>
+                                    <input name="sort_order" type="number" value="0" /></div>
+                                <div style="flex:1;"><label class="text-muted" style="font-size: 0.8rem;">显示状态</label>
+                                    <select name="is_public">
+                                        <option value="1">公开展示</option>
+                                        <option value="0">记录存档</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="editor mt-4">
+                                <div class="text-muted mb-2" style="font-size: 0.8rem;">详细内容 (支持 HTML)</div>
+                                <div class="editor-toolbar mb-2 flex gap-1 flex-wrap">
+                                    <button class="btn small" type="button" data-cmd="bold">B</button>
+                                    <button class="btn small" type="button" data-cmd="h2">H2</button>
+                                    <button class="btn small" type="button" data-cmd="link">LINK</button>
+                                    <button class="btn small" type="button" id="imageUploadBtn">IMG</button>
+                                    <input type="file" id="imageUploadInput" accept="image/*" hidden />
+                                </div>
+                                <div id="projectEditor" class="editor-body" contenteditable="true" spellcheck="false" style="min-height: 240px; border: 1px solid var(--line); padding: 12px; border-radius: var(--radius-md);"></div>
+                                <textarea name="content_html" id="contentHtml" style="display: none;"></textarea>
+                            </div>
+                            
+                            <button class="btn primary mt-4" type="submit" style="width: 100%;">确认保存档案</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer>
-      <div>管理后台仅限授权人员使用。</div>
+        <p class="text-muted">© 2026 JEJE WEB. 仅供管理员授权访问.</p>
     </footer>
 
     <script type="module" src="admin.js"></script>
-  </body>
+</body>
 </html>
-

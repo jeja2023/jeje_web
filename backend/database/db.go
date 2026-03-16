@@ -1,10 +1,8 @@
-// 数据库连接 / Database Connection
+// Database Connection
 package database
 
 import (
 	"fmt"
-	"time"
-
 	"jeje_web/config"
 
 	"github.com/jmoiron/sqlx"
@@ -22,8 +20,8 @@ func OpenDB(cfg config.Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(20)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	db.SetMaxIdleConns(cfg.DBMaxIdleConns)
+	db.SetConnMaxLifetime(cfg.DBConnMaxLifetime)
 	return db, nil
 }

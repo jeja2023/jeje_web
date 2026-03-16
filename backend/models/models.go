@@ -8,10 +8,13 @@ type Project struct {
 	Name        string    `db:"name" json:"name"`
 	Summary     string    `db:"summary" json:"summary"`
 	CoverURL    string    `db:"cover_url" json:"cover_url"`
+	VideoURL    string    `db:"video_url" json:"video_url"`
 	ContentHTML string    `db:"content_html" json:"content_html"`
 	ExternalURL string    `db:"external_url" json:"external_url"`
 	SortOrder   int       `db:"sort_order" json:"sort_order"`
 	IsPublic    bool      `db:"is_public" json:"is_public"`
+	ViewCount   int       `db:"view_count" json:"view_count"`
+	Tags        string    `db:"tags" json:"tags"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
