@@ -124,10 +124,25 @@
                                 <input name="name" placeholder="请输入名称" required /></div>
                             <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">精简介绍</label>
                                 <input name="summary" placeholder="一句话描述" /></div>
-                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">封面图片链接</label>
-                                <input name="cover_url" placeholder="URL" /></div>
-                            <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">视频演示链接 (MP4/WebM)</label>
-                                <input name="video_url" placeholder="URL" /></div>
+                            <div class="mt-2">
+                                <label class="text-muted" style="font-size: 0.8rem;">封面图片</label>
+                                <div class="flex gap-2">
+                                    <input name="cover_url" placeholder="封面图片链接" style="flex: 1;" />
+                                    <button class="btn small" type="button" id="coverUploadBtn">上传图片</button>
+                                    <input type="file" id="coverUploadInput" accept="image/*" hidden />
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="text-muted" style="font-size: 0.8rem;">视频演示 (MP4/WebM)</label>
+                                <div class="flex gap-2">
+                                    <input name="video_url" placeholder="视频演示链接" style="flex: 1;" />
+                                    <button class="btn small" type="button" id="videoUploadBtn">上传视频</button>
+                                    <input type="file" id="videoUploadInput" accept="video/mp4,video/webm" hidden />
+                                </div>
+                                <div id="videoProgressContainer" style="display: none; height: 12px; background: var(--bg-offset); border-radius: var(--radius-sm); margin-top: 10px; overflow: hidden; border: 1px solid var(--line);">
+                                    <div id="videoProgressBar" style="width: 0%; height: 100%; background: var(--ink); transition: width 0.2s ease;"></div>
+                                </div>
+                            </div>
                             <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">在线链接/源码地址</label>
                                 <input name="external_url" placeholder="URL" /></div>
                             <div class="mt-2"><label class="text-muted" style="font-size: 0.8rem;">分类标签 (逗号分隔)</label>

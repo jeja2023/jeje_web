@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"log"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -60,7 +60,6 @@ func parsePositiveInt(value string, def int) int {
 	}
 	return parsed
 }
-
 
 func (a *App) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -341,7 +340,6 @@ func (a *App) AdminLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "登录成功"})
 }
 
-
 func (a *App) AdminSession(c *gin.Context) {
 	cookie, err := c.Cookie("session")
 	if err != nil || cookie == "" {
@@ -503,7 +501,7 @@ func (a *App) AdminCreateReply(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "已回复"})
 }
 
-func (a *App) AdminUploadImage(c *gin.Context) {
+func (a *App) AdminUpload(c *gin.Context) {
 	maxBytes := int64(a.Cfg.UploadMaxMB) * 1024 * 1024
 	if maxBytes <= 0 {
 		maxBytes = 5 * 1024 * 1024
@@ -528,14 +526,23 @@ func (a *App) AdminUploadImage(c *gin.Context) {
 	contentType := http.DetectContentType(buf[:n])
 	allowed := map[string]string{
 		"image/jpeg": ".jpg",
-		"image/png": ".png",
-		"image/gif": ".gif",
+		"image/png":  ".png",
+		"image/gif":  ".gif",
 		"image/webp": ".webp",
+		"video/mp4":  ".mp4",
+		"video/webm": ".webm",
 	}
 	ext, ok := allowed[contentType]
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "该文件格式不支持"})
-		return
+		// 备选方案：尝试从文件名后缀判断
+		ext = strings.ToLower(filepath.Ext(header.Filename))
+		if ext != ".mp4" && ext != ".webm" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" && ext != ".webp" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "该文件格式不支持"})
+			return
+		}
+		if ext == ".jpeg" {
+			ext = ".jpg"
+		}
 	}
 	var reader io.Reader = file
 	if seeker, ok := file.(io.Seeker); ok {

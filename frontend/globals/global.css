@@ -1,8 +1,8 @@
 /* ========== 全局设计系统 / Global Design System ========== */
 :root {
-  /* 核心色调 - 采用极致简约的黑白灰体系 */
-  --bg: #ffffff;
-  --bg-offset: #fbfbfb;
+  /* 核心色调 - 采用精致的浅灰层次体系 */
+  --bg: #f8f9fa;
+  --bg-offset: #f1f3f5;
   --ink: #111111;
   --muted: #666666;
   --subtle: #999999;

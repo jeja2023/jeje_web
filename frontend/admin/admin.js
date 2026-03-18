@@ -46,7 +46,6 @@ const state = {
 let savedRange = null;
 
 function isAuthError(err) {
-  // 适配中英文授权错误提示 / Support both Chinese and English auth errors
   if (!err) return false;
   if (err.status === 401 || err.status === 403) return true;
   return /unauthorized|session|未登录|会话无效|登录已过期|未授权/i.test(err.message);
@@ -105,7 +104,6 @@ function showTab(name) {
   tabMessages.style.display = name === "messages" ? "block" : "none";
   tabProjects.style.display = name === "projects" ? "block" : "none";
   
-  // 切换到控制面板时刷新数据
   if (name === "dashboard") loadStats();
 }
 
@@ -319,6 +317,8 @@ function renderProject(project) {
       editor.innerHTML = project.content_html || "";
       contentHtml.value = project.content_html || "";
       projectForm.name.focus();
+      // 触发封面预览
+      projectForm.cover_url.dispatchEvent(new Event("input"));
       showToast("项目已加载到编辑表单", "info");
     }),
     createActionButton("删除", () => deleteProject(project.id), { danger: true })
@@ -384,20 +384,16 @@ async function loadStats() {
     if (!isAuthError(err)) {
       console.error("加载统计数据失败:", err);
     }
-    throw err; // 向上传递错误，以便 loadAdminData 处理
+    throw err;
   }
 }
 
 async function loadAdminData() {
   try {
-    // 隐藏主面板，防止数据加载中闪烁
     adminPanel.style.display = "none";
-    
     await loadStats();
     await loadMessages(state.messageQuery.page);
     await loadProjects(state.projectQuery.page);
-    
-    // 全部加载成功后显示
     setLoggedIn(true);
     showTab("dashboard");
   } catch (err) {
@@ -417,7 +413,6 @@ async function checkSession() {
       return;
     }
   } catch (err) {
-    // ignore, fall back to login panel
   }
   setLoggedIn(false);
 }
@@ -459,25 +454,43 @@ function runCommand(command) {
   document.execCommand(command);
 }
 
-async function uploadImage(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await fetch(`${API_BASE}/admin/uploads`, {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-  if (!res.ok) {
-    let message = "上传失败";
-    try {
-      const data = await res.json();
-      message = data.error || message;
-    } catch (err) {
-      message = message;
+async function uploadFile(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append("file", file);
+
+    xhr.open("POST", `${API_BASE}/admin/uploads`, true);
+    xhr.withCredentials = true;
+
+    if (onProgress && xhr.upload) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.floor((e.loaded / e.total) * 100));
+        }
+      };
     }
-    throw new Error(message);
-  }
-  return res.json();
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (e) {
+          reject(new Error("响应解析错误"));
+        }
+      } else {
+        let message = "上传失败";
+        try {
+          const data = JSON.parse(xhr.responseText);
+          message = data.error || message;
+        } catch (e) {}
+        reject(new Error(message));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("网络请求失败"));
+    xhr.send(formData);
+  });
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -553,6 +566,7 @@ projectForm.addEventListener("submit", async (event) => {
     projectForm.reset();
     editor.innerHTML = "";
     contentHtml.value = "";
+    document.getElementById("coverPreview")?.style.setProperty("display", "none");
     await loadProjects(state.projectQuery.page);
   } catch (err) {
     showToast(`提交失败：${err.message}`, "error");
@@ -565,7 +579,6 @@ if (logoutBtn) {
       await fetchJSON(`${API_BASE}/admin/logout`, { method: "POST" });
       showToast("已安全退出", "info");
     } catch (err) {
-      // ignore logout errors, still clear UI
     }
     setLoggedIn(false);
   });
@@ -594,7 +607,7 @@ if (imageUploadBtn && imageUploadInput) {
     if (!file) return;
     showToast("图片上传中...", "info");
     try {
-      const data = await uploadImage(file);
+      const data = await uploadFile(file);
       restoreSelection();
       document.execCommand("insertImage", false, data.url);
       showToast("图片已插入编辑器", "success");
@@ -602,6 +615,66 @@ if (imageUploadBtn && imageUploadInput) {
       showToast(`图片上传失败：${err.message}`, "error");
     } finally {
       imageUploadInput.value = "";
+    }
+  });
+}
+
+// 封面与视频上传处理 / Cover and Video Uploads
+const coverUploadBtn = document.getElementById("coverUploadBtn");
+const coverUploadInput = document.getElementById("coverUploadInput");
+const videoUploadBtn = document.getElementById("videoUploadBtn");
+const videoUploadInput = document.getElementById("videoUploadInput");
+
+if (coverUploadBtn && coverUploadInput) {
+  coverUploadBtn.addEventListener("click", () => coverUploadInput.click());
+  coverUploadInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    showToast("封面图片上传中...", "info");
+    try {
+      const data = await uploadFile(file);
+      projectForm.cover_url.value = data.url;
+      projectForm.cover_url.dispatchEvent(new Event("input"));
+      showToast("封面图片已上传", "success");
+    } catch (err) {
+      showToast(`封面上传失败：${err.message}`, "error");
+    } finally {
+      coverUploadInput.value = "";
+    }
+  });
+}
+
+if (videoUploadBtn && videoUploadInput) {
+  videoUploadBtn.addEventListener("click", () => videoUploadInput.click());
+  videoUploadInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    
+    const progContainer = document.getElementById("videoProgressContainer");
+    const progressBar = document.getElementById("videoProgressBar");
+    
+    if (progContainer) {
+      progContainer.style.display = "block";
+      if (progressBar) progressBar.style.width = "0%";
+    }
+    
+    showToast("视频上传中...", "info");
+    try {
+      const data = await uploadFile(file, (percent) => {
+        if (progressBar) progressBar.style.width = percent + "%";
+      });
+      projectForm.video_url.value = data.url;
+      showToast("演示视频已上传", "success");
+    } catch (err) {
+      showToast(`视频上传失败：${err.message}`, "error");
+    } finally {
+      videoUploadInput.value = "";
+      if (progContainer) {
+        setTimeout(() => {
+          progContainer.style.display = "none";
+          if (progressBar) progressBar.style.width = "0%";
+        }, 1500);
+      }
     }
   });
 }
@@ -615,7 +688,7 @@ if (coverUrlInput) {
       preview = document.createElement("img");
       preview.id = "coverPreview";
       preview.style.cssText = "width:100%; height:120px; object-fit:cover; border-radius:12px; margin-top:10px; border:1px solid var(--line);";
-      coverUrlInput.after(preview);
+      coverUrlInput.parentElement.parentElement.appendChild(preview);
     }
     preview.src = url || "";
     preview.style.display = url ? "block" : "none";
@@ -667,9 +740,7 @@ tabs.forEach((tab) => {
 
 checkSession();
 
-// 定期检查管理员会话状态 (每 5 分钟一次)
 setInterval(async () => {
-  // 仅在当前处于登录状态界面时检查
   if (adminPanel.style.display !== "none") {
     try {
       await fetchJSON(`${API_BASE}/admin/stats`);

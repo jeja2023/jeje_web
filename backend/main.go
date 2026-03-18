@@ -1,4 +1,4 @@
-﻿// 后端主入口 / Backend Main Entry
+// 后端主入口 / Backend Main Entry
 package main
 
 import (
@@ -150,7 +150,7 @@ func main() {
 	adminGroup.POST("/projects", app.AdminCreateProject)
 	adminGroup.PUT("/projects/:id", app.AdminUpdateProject)
 	adminGroup.DELETE("/projects/:id", app.AdminDeleteProject)
-	adminGroup.POST("/uploads", app.AdminUploadImage)
+	adminGroup.POST("/uploads", app.AdminUpload)
 
 	// 1. 托管上传文件
 	router.Static("/uploads", cfg.UploadDir)
