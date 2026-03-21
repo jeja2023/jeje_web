@@ -15,7 +15,9 @@ services:
     environment:
       - APP_ENV=prod
       - APP_ADDR=:8080
+      - GIN_MODE=release
       - DB_NAME=jeje.db
+      - FRONTEND_DIR=/app/frontend
       - UPLOAD_DIR=/app/storage/uploads
       - JWT_SECRET=please-change-it-to-your-key-123
       - UPLOAD_MAX_MB=1024
