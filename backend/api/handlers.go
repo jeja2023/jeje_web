@@ -415,6 +415,48 @@ func (a *App) AdminLogout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "已退出登录"})
 }
 
+func (a *App) AdminUpdatePassword(c *gin.Context) {
+	var payload struct {
+		OldPassword string `json:"old_password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数不规范，新密码至少 6 位"})
+		return
+	}
+
+	adminID, exists := c.Get("admin_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	var storedHash string
+	if err := a.DB.Get(&storedHash, "SELECT password_hash FROM admins WHERE id = ?", adminID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "系统异常"})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(payload.OldPassword)); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "原密码校验失败"})
+		return
+	}
+
+	newHash, err := bcrypt.GenerateFromPassword([]byte(payload.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		return
+	}
+
+	if _, err := a.DB.Exec("UPDATE admins SET password_hash = ? WHERE id = ?", string(newHash), adminID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "数据库更新失败"})
+		return
+	}
+
+	log.Printf("管理员 [ID: %v] 已成功更新密码", adminID)
+	c.JSON(http.StatusOK, gin.H{"message": "密码修改成功，请妥善保管"})
+}
+
 func (a *App) AdminListMessages(c *gin.Context) {
 	messages := []models.Message{}
 	page, limit, offset := parsePagination(c, 20, 100)

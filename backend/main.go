@@ -141,6 +141,7 @@ func main() {
 	adminGroup.POST("/login", app.AdminLogin)
 	adminGroup.POST("/logout", app.AdminLogout)
 	adminGroup.Use(app.AdminAuthMiddleware())
+	adminGroup.POST("/password", app.AdminUpdatePassword)
 	adminGroup.GET("/stats", app.AdminStats)
 	adminGroup.GET("/messages", app.AdminListMessages)
 	adminGroup.PATCH("/messages/:id", app.AdminUpdateMessage)

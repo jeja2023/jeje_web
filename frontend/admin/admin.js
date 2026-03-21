@@ -8,7 +8,9 @@ const tabs = document.querySelectorAll(".tab");
 const tabDashboard = document.getElementById("tab-dashboard");
 const tabMessages = document.getElementById("tab-messages");
 const tabProjects = document.getElementById("tab-projects");
-const tabPanels = [tabDashboard, tabMessages, tabProjects].filter(Boolean);
+const tabSettings = document.getElementById("tab-settings");
+const tabPanels = [tabDashboard, tabMessages, tabProjects, tabSettings].filter(Boolean);
+const passwordForm = document.getElementById("passwordForm");
 
 const adminMessageList = document.getElementById("adminMessageList");
 const messageSearch = document.getElementById("messageSearch");
@@ -1145,7 +1147,32 @@ if (logoutBtn) {
   });
 }
 
+if (passwordForm) {
+  passwordForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(passwordForm));
 
+    if (data.new_password !== data.confirm_password) {
+      showToast("两次输入的新密码不一致", "error");
+      return;
+    }
+
+    try {
+      const res = await fetchJSON(`${API_BASE}/admin/password`, {
+        method: "POST",
+        body: JSON.stringify({
+          old_password: data.old_password,
+          new_password: data.new_password,
+        }),
+      });
+      showToast(res.message || "密码修改成功");
+      passwordForm.reset();
+    } catch (err) {
+      console.error("修改密码失败:", err);
+      showToast(err.message || "修改密码失败", "error");
+    }
+  });
+}
 
 if (coverUploadBtn && coverUploadInput) {
   coverUploadBtn.addEventListener("click", () => coverUploadInput.click());
