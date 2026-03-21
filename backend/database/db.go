@@ -7,13 +7,13 @@ import (
 	"jeje_web/config"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3" // SQLite Driver
+	_ "modernc.org/sqlite" // Pure Go SQLite Driver (No CGO needed)
 )
 
 func OpenDB(cfg config.Config) (*sqlx.DB, error) {
 	// 确保数据库文件存放在与上传文件同一个 storage 目录下，便于备份
 	dbPath := filepath.Join(cfg.UploadDir, "..", "jeje.db")
-	db, err := sqlx.Connect("sqlite3", dbPath)
+	db, err := sqlx.Connect("sqlite", dbPath)
 	if err != nil {
 		return nil, err
 	}

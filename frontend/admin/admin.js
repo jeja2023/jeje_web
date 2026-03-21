@@ -962,9 +962,19 @@ async function loadStats() {
 async function loadAdminData() {
   try {
     if (adminPanel) adminPanel.hidden = true;
-    await loadStats();
-    await loadMessages(state.messageQuery.page);
-    await loadProjects(state.projectQuery.page);
+    
+    // 异步加载所有面板数据，如果某一项失败不应阻止显示面板
+    Promise.allSettled([
+      loadStats(),
+      loadMessages(state.messageQuery.page),
+      loadProjects(state.projectQuery.page)
+    ]).then((results) => {
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn(`${failures.length} 个模块加载失败，但控制台将继续显示。`);
+      }
+    });
+
     setLoggedIn(true);
     showTab("dashboard");
     initEditor();
@@ -973,7 +983,7 @@ async function loadAdminData() {
       setLoggedIn(false);
       return;
     }
-    showToast(`加载失败：${err.message}`, "error");
+    showToast(`初始化控制台失败：${err.message}`, "error");
   }
 }
 

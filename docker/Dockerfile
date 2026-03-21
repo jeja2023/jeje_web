@@ -1,9 +1,6 @@
 # 第一阶段：编译 Go 后端
 FROM golang:1.22-alpine AS builder
 
-# 安装编译 SQLite 所需的 build-base (CGO_ENABLED=1)
-RUN apk add --no-cache build-base
-
 WORKDIR /app
 
 # 设置 Go 代理以加速国内依赖下载
@@ -13,9 +10,9 @@ ENV GOPROXY=https://goproxy.cn,direct
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-# 复制后端源码并进行 CGO 编译 (SQLite 需要 CGO)
+# 复制后端源码并进行静态编译 (不再需要 CGO，因为使用了现代 Go 驱动)
 COPY backend/ .
-RUN CGO_ENABLED=1 GOOS=linux go build -o /app/jeje_web main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/jeje_web main.go
 
 # 第二阶段：运行环境
 FROM alpine:latest
