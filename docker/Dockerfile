@@ -1,5 +1,5 @@
 # 第一阶段：编译 Go 后端
-FROM golang:1.21-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 # 安装编译 SQLite 所需的 build-base (CGO_ENABLED=1)
 RUN apk add --no-cache build-base
