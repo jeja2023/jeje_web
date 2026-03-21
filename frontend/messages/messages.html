@@ -1,17 +1,25 @@
-<!-- 留言板 HTML / Messages HTML -->
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>留言板 - JEJE WEB</title>
-    <meta name="description" content="欢迎来到笔者的留言板，请在这里留下您的建议、合作意向或技术反馈。" />
+    <title>来信交流 | JEJE Atelier</title>
+    <meta
+      name="description"
+      content="在 JEJE Atelier 留下建议、合作意向或技术反馈，让案例展示和真实交流形成闭环。"
+    />
     <link rel="stylesheet" href="/globals/global.css" />
     <link rel="stylesheet" href="messages.css" />
   </head>
   <body>
     <header>
-      <div class="logo">JEJE WEB</div>
+      <div class="logo-lockup">
+        <span class="logo-mark">JE</span>
+        <div class="logo-stack">
+          <span class="logo">JEJE Atelier</span>
+          <span class="logo-subtitle">留言交流台</span>
+        </div>
+      </div>
       <nav>
         <a href="/">首页</a>
         <a href="/admin">后台管理</a>
@@ -20,16 +28,30 @@
 
     <main class="container">
       <section class="section animate-fade-in">
-        <div class="header-content mb-4">
-          <h1 class="section-title">致信交流</h1>
-          <p class="text-muted mt-2">在这里留下您的足迹，无论是技术交流、合作意向，亦或是对本站的任何建议，我都会认真阅读并及时回复。</p>
+        <div class="message-intro">
+          <div class="header-content">
+            <span class="eyebrow">公开交流</span>
+            <h1 class="section-title">来信交流</h1>
+            <p class="page-lead mt-2">
+              在这里留下您的足迹，无论是技术交流、合作意向，亦或是对本站的任何建议，我都会认真阅读并及时回复。
+            </p>
+          </div>
+          <div class="message-intro-card">
+            <strong>留言会经过审核再公开展示</strong>
+            <p>如果你只是想私下沟通，也可以留下邮箱或社交账号，我会按照你提供的方式联系你。</p>
+            <div class="message-guidelines">
+              <span>合作沟通</span>
+              <span>功能反馈</span>
+              <span>体验建议</span>
+            </div>
+          </div>
         </div>
 
         <div class="grid message-page-grid">
-          <div class="form-card animate-fade-in" style="animation-delay: 0.1s;">
+          <div class="form-card animate-fade-in message-form-card">
             <div class="card-header mb-3">
               <h3 class="mb-1">快捷留言</h3>
-              <p class="text-muted" style="font-size: 0.85rem;">您的信息将会在审核通过后公开显示。</p>
+              <p class="text-muted form-helper-text">您的信息将在审核通过后公开显示。</p>
             </div>
             <form id="messageForm" class="flex flex-column gap-2">
               <div class="form-group">
@@ -37,14 +59,14 @@
                 <input name="nickname" placeholder="如何称呼您？" required />
               </div>
               <div class="form-group">
-                <label class="text-muted small-label">联系方式 (可选)</label>
+                <label class="text-muted small-label">联系方式（可选）</label>
                 <input name="contact" placeholder="邮箱或社交账号" />
               </div>
               <div class="form-group">
                 <label class="text-muted small-label">内容</label>
                 <textarea name="content" placeholder="想要说点什么..." required rows="4"></textarea>
               </div>
-              
+
               <div class="captcha-box mt-2">
                 <div id="captchaQuestion" class="captcha-question">验证码加载中...</div>
                 <div class="captcha-row">
@@ -55,7 +77,7 @@
               </div>
 
               <input name="website" class="honeypot" tabindex="-1" autocomplete="off" />
-              <button class="btn primary mt-2" type="submit" style="height: 48px;">
+              <button class="btn primary mt-2 message-submit-btn" type="submit">
                 <span>发送留言</span>
                 <i class="icon-send"></i>
               </button>
@@ -63,10 +85,11 @@
           </div>
 
           <div class="message-list-container">
-            <h3 class="mb-3">最新动向</h3>
-            <div id="messageList" class="list flex flex-column gap-3">
-              <!-- 内容由 JS 动态生成 -->
+            <div class="message-list-head">
+              <h3>最新动态</h3>
+              <p class="text-muted">公开展示的留言会按时间倒序排列，管理员回复会跟随展示。</p>
             </div>
+            <div id="messageList" class="list flex flex-column gap-3"></div>
             <div id="messagePagination" class="mt-4"></div>
           </div>
         </div>
@@ -74,7 +97,7 @@
     </main>
 
     <footer>
-      <p class="text-muted">感谢您的关注。 © 2026 JEJE WEB</p>
+      <p class="text-muted">感谢你的关注。© 2026 JEJE Atelier，欢迎继续交流。</p>
     </footer>
 
     <script type="module" src="messages.js"></script>

@@ -4,21 +4,21 @@ import { API_BASE, fetchJSON, formatDate, showToast, renderPagination, showLoadi
 const list = document.getElementById("messageList");
 const pagination = document.getElementById("messagePagination");
 const form = document.getElementById("messageForm");
+const captchaQuestion = document.getElementById("captchaQuestion");
+const captchaRefresh = document.getElementById("captchaRefresh");
+const captchaId = document.getElementById("captchaId");
 
 const state = {
   page: 1,
   limit: 10,
 };
-const captchaQuestion = document.getElementById("captchaQuestion");
-const captchaRefresh = document.getElementById("captchaRefresh");
-const captchaId = document.getElementById("captchaId");
 
 let captchaLoading = false;
 
 function renderMessage(msg, index) {
   const item = document.createElement("div");
-  item.className = "message";
-  item.style.animationDelay = `${index * 0.1}s`;
+  item.className = "message stagger-item";
+  item.style.setProperty("--stagger-index", String(index));
 
   const meta = document.createElement("div");
   meta.className = "meta";
@@ -47,6 +47,7 @@ function renderMessage(msg, index) {
       item.appendChild(replyEl);
     });
   }
+
   return item;
 }
 
@@ -57,12 +58,12 @@ async function loadMessages() {
     const messages = data.data || [];
     hideLoading(list);
     list.innerHTML = "";
-    
+
     if (!messages.length) {
       renderEmpty(list, "目前还没有留言，来做第一个留言的人吧？");
       return;
     }
-    
+
     messages.forEach((msg, index) => {
       list.appendChild(renderMessage(msg, index));
     });
@@ -75,7 +76,7 @@ async function loadMessages() {
       onPageChange: (newPage) => {
         state.page = newPage;
         loadMessages();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       },
     });
   } catch (err) {
@@ -108,7 +109,7 @@ if (captchaRefresh) {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const btn = form.querySelector('button[type="submit"]');
-  
+
   if (!captchaId.value) {
     showToast("验证码未加载，请重试", "warning");
     await loadCaptcha();
@@ -120,13 +121,13 @@ form.addEventListener("submit", async (event) => {
 
   try {
     btn.disabled = true;
-    btn.textContent = "发送中...";
-    
+    btn.innerHTML = "<span>发送中...</span>";
+
     await fetchJSON(`${API_BASE}/messages`, {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    
+
     showToast("提交成功，感谢您的留言", "success");
     form.reset();
     await loadCaptcha();
@@ -135,10 +136,12 @@ form.addEventListener("submit", async (event) => {
     await loadCaptcha();
   } finally {
     btn.disabled = false;
-    btn.textContent = "发送留言";
+    btn.innerHTML = `
+      <span>发送留言</span>
+      <i class="icon-send"></i>
+    `;
   }
 });
 
 loadMessages();
 loadCaptcha();
-

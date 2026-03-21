@@ -1,4 +1,4 @@
-﻿// 配置管理 / Configuration Management
+// 配置管理 / Configuration Management
 package config
 
 import (
@@ -69,7 +69,7 @@ func LoadConfig() Config {
 	cfg.LoginLockDuration = time.Duration(getEnvInt("LOGIN_LOCK_MINUTES", 15)) * time.Minute
 	cfg.UploadDir = getEnv("UPLOAD_DIR", "../storage/uploads")
 	cfg.UploadBaseURL = getEnv("UPLOAD_BASE_URL", "/uploads")
-	cfg.UploadMaxMB = getEnvInt("UPLOAD_MAX_MB", 5)
+	cfg.UploadMaxMB = getEnvInt("UPLOAD_MAX_MB", 1024)
 	cfg.FrontendDir = getEnv("FRONTEND_DIR", "../frontend")
 	return cfg
 }

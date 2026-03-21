@@ -1,85 +1,297 @@
-/* ========== 首页专属样式 / Home Custom Styles ========== */
-
-.hero {
-  min-height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 120px 0;
+.home-flow {
+  padding-bottom: 24px;
 }
 
-.hero-content h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-  color: var(--ink);
+.home-block {
+  position: relative;
 }
 
-.hero-content p {
-  font-size: 1.25rem;
-  line-height: 1.6;
+.home-flow .eyebrow {
+  justify-self: start;
+  width: fit-content;
+}
+
+.home-flow .section {
+  padding: 64px 0;
+}
+
+.home-flow .section:first-child {
+  padding-top: 46px;
+}
+
+.hero-intro {
+  display: grid;
+  gap: 20px;
+  padding: clamp(28px, 4vw, 44px);
+  border: 1px solid rgba(18, 63, 60, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(159, 86, 49, 0.1), transparent 38%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(255, 251, 245, 0.86));
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-intro h1 {
+  max-width: none;
+  font-size: clamp(2rem, 3.6vw, 2.7rem);
+  line-height: 1.04;
+  color: var(--accent-strong);
+}
+
+.hero-lead {
+  max-width: none;
+  font-size: 1rem;
   color: var(--muted);
 }
 
-/* 搜索框美化 */
-.search-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
+.hero-note {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
 }
 
-.search-wrap input {
-  padding-left: 40px;
-  background: var(--bg-offset);
-  border-radius: var(--radius-full);
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.hero-actions .btn:first-child {
+  min-width: 152px;
+}
+
+.projects-panel {
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.projects-panel .section-header {
+  align-items: start;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.projects-panel .search-tools {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.projects-panel .search-wrap {
+  width: min(360px, 100%);
+}
+
+.projects-panel .search-tools .btn {
+  flex: 0 0 auto;
+  min-width: 108px;
+}
+
+.projects-panel .section-title {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.projects-panel .section-copy {
+  max-width: none;
+}
+
+@media (min-width: 1200px) {
+  .hero-intro h1,
+  .hero-lead,
+  .hero-note,
+  .projects-panel .section-copy {
+    white-space: nowrap;
+  }
+}
+
+.card-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--subtle);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+}
+
+.project-card {
+  min-height: 100%;
+}
+
+.project-card .card-img-wrapper {
+  aspect-ratio: 4 / 3;
+}
+
+.project-card .card-title {
+  transition: color 0.24s ease, transform 0.24s ease;
+}
+
+.project-card:hover .card-title {
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+.search-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.search-wrap {
+  position: relative;
+  width: min(320px, 100%);
 }
 
 .search-wrap::before {
-  content: "🔍";
+  content: "";
   position: absolute;
-  left: 14px;
   top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.9rem;
-  opacity: 0.4;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(18, 63, 60, 0.4);
+  border-radius: 50%;
+  transform: translateY(-58%);
 }
 
-/* 标签筛选优化 */
+.search-wrap::after {
+  content: "";
+  position: absolute;
+  top: calc(50% + 7px);
+  left: 27px;
+  width: 8px;
+  height: 2px;
+  background: rgba(18, 63, 60, 0.4);
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.search-wrap input {
+  padding-left: 44px;
+  border-radius: var(--radius-full);
+}
+
 .tag-filter-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
 }
 
 .tag-filter {
-  padding: 6px 16px;
+  padding: 8px 15px;
+  border: 1px solid rgba(18, 63, 60, 0.12);
   border-radius: var(--radius-full);
-  border: 1px solid var(--line);
-  background: var(--bg);
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.58);
   color: var(--muted);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.tag-filter:hover {
-  border-color: var(--line-strong);
-  background: var(--bg-offset);
-}
-
+.tag-filter:hover,
 .tag-filter.active {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
+  border-color: rgba(18, 63, 60, 0.2);
+  background: var(--accent);
+  color: #f8f6f0;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .hero {
-    padding: 60px 0;
-    text-align: center;
-    justify-content: center;
+.card-meta-wrap {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.card-meta-row {
+  color: var(--subtle);
+  font-size: 0.8rem;
+}
+
+.tag-filter-list,
+#projectGrid,
+#projectPagination {
+  animation: fadeIn 0.5s ease both;
+}
+
+.home-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 34px;
+  background:
+    radial-gradient(circle at top right, rgba(18, 63, 60, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(251, 247, 241, 0.94));
+}
+
+.home-cta > div:first-child {
+  width: 100%;
+  text-align: left;
+}
+
+.home-cta > div:first-child .eyebrow {
+  justify-self: start;
+}
+
+.home-cta h3 {
+  margin-top: 18px;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  text-align: left;
+}
+
+.home-cta p {
+  text-align: left;
+}
+
+.home-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+@media (max-width: 980px) {
+  .home-flow .section {
+    padding: 54px 0;
+  }
+
+  .projects-panel {
+    padding: 24px;
+  }
+
+  .home-cta {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-flow .section {
+    padding: 44px 0;
+  }
+
+  .hero-intro h1 {
+    max-width: none;
+    font-size: clamp(2.8rem, 16vw, 4rem);
+  }
+
+  .hero-intro,
+  .projects-panel,
+  .home-cta {
+    padding: 24px;
+  }
+
+  .projects-panel .search-tools {
+    width: 100%;
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+
+  .projects-panel .search-wrap {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .projects-panel .search-tools .btn {
+    flex: 1 1 calc(50% - 6px);
   }
 }

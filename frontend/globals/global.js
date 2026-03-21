@@ -1,4 +1,4 @@
-﻿// 全局脚本 / Global Script
+// 全局脚本 / Global Script
 export const API_BASE = "/api";
 
 export async function fetchJSON(url, options = { headers: {} }) {
@@ -41,14 +41,18 @@ export function escapeHTML(value) {
     .replace(/'/g, "&#39;");
 }
 
-export function formatDate(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  return date.toLocaleString("zh-CN", {
+export function formatDate(dateString) {
+  if (!dateString) return "暂无";
+  const options = {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  };
+  return new Date(dateString).toLocaleString("zh-CN", options);
 }
 
 /* ========== 全局提示 (Toast) ========== */

@@ -1,4 +1,4 @@
-// 首页脚本 / Home Script
+// 首页脚本
 import { API_BASE, fetchJSON, formatDate, renderPagination, escapeHTML } from "/globals/global.js";
 
 const grid = document.getElementById("projectGrid");
@@ -28,38 +28,49 @@ function renderTagFilters(tags) {
   if (!tagList) return;
   const allTags = ["全部", ...tags];
   tagList.innerHTML = "";
+
   allTags.forEach((tag) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "tag-filter";
     btn.textContent = tag;
+
     const value = tag === "全部" ? "" : tag;
     if (state.tag === value) {
       btn.classList.add("active");
     }
+
     btn.addEventListener("click", () => {
       state.tag = value;
       tagList.querySelectorAll(".tag-filter").forEach((el) => el.classList.remove("active"));
       btn.classList.add("active");
       loadProjects(1);
     });
+
     tagList.appendChild(btn);
   });
 }
 
-function projectCard(project) {
+function projectCard(project, index) {
   const card = document.createElement("a");
-  card.className = "card animate-fade-in";
+  card.className = "card project-card stagger-item";
   card.href = `/project?id=${project.id}`;
+  card.style.setProperty("--stagger-index", String(index));
 
   const safeName = escapeHTML(project.name || "");
   const safeSummary = escapeHTML(project.summary || "暂无简介");
   const tags = splitTags(project.tags).map(escapeHTML);
 
-  const coverHtml = project.cover_url 
-    ? `<div class="card-img-wrapper"><img src="${project.cover_url}" class="card-img" alt="${safeName}" loading="lazy"></div>`
-    : `<div class="card-img-wrapper" style="display:flex;align-items:center;justify-content:center;background:var(--bg-offset);color:var(--subtle);font-size:0.8rem;">NO IMAGE</div>`;
-    
+  const coverUrls = (project.cover_url || "")
+    .split(/\r?\n|,|，|;|；/)
+    .map((u) => u.trim())
+    .filter(Boolean);
+  const primaryCover = coverUrls[0] || "";
+
+  const coverHtml = primaryCover
+    ? `<div class="card-img-wrapper"><img src="${escapeHTML(primaryCover)}" class="card-img" alt="${safeName}" loading="lazy"></div>`
+    : `<div class="card-img-wrapper card-img-placeholder">暂无封面</div>`;
+
   const tagsHtml = tags.length
     ? `<div class="tag-list">${tags.map((tag) => `<span class="tag-chip">${tag}</span>`).join("")}</div>`
     : "";
@@ -69,18 +80,18 @@ function projectCard(project) {
     <div class="card-body">
       <div class="card-title">${safeName}</div>
       <div class="card-summary">${safeSummary}</div>
-      <div style="margin-top: auto; padding-top: 16px;">
+      <div class="card-meta-wrap">
         ${tagsHtml}
-        <div class="flex justify-between items-center mt-2" style="font-size: 0.8rem; color: var(--subtle);">
+        <div class="card-meta-row flex justify-between items-center mt-2">
           <span>${formatDate(project.created_at)}</span>
-          <span>${project.view_count || 0} VIEWS</span>
+          <span>${project.view_count || 0} 次浏览</span>
         </div>
       </div>
     </div>
   `;
+
   return card;
 }
-
 
 async function loadProjects(page = state.page) {
   try {
@@ -88,15 +99,19 @@ async function loadProjects(page = state.page) {
     const params = new URLSearchParams({ page: String(state.page), limit: String(state.limit) });
     if (state.q) params.set("q", state.q);
     if (state.tag) params.set("tag", state.tag);
+
     const data = await fetchJSON(`${API_BASE}/projects?${params.toString()}`);
     const list = data.data || [];
     grid.innerHTML = "";
+
     if (!list.length) {
-      grid.innerHTML = `<div class="card">暂无项目。</div>`;
+      grid.innerHTML = `<div class="empty-state">当前没有匹配的作品，试试更换关键词或标签。</div>`;
       if (pagination) pagination.innerHTML = "";
       return;
     }
-    list.forEach((project) => grid.appendChild(projectCard(project)));
+
+    list.forEach((project, index) => grid.appendChild(projectCard(project, index)));
+
     if (pagination) {
       renderPagination({
         container: pagination,
@@ -107,7 +122,7 @@ async function loadProjects(page = state.page) {
       });
     }
   } catch (err) {
-    grid.innerHTML = `<div class="card">加载失败：${err.message}</div>`;
+    grid.innerHTML = `<div class="empty-state">加载失败：${err.message}</div>`;
   }
 }
 
@@ -122,18 +137,14 @@ async function loadTags() {
   }
 }
 
-
-// 实现平滑滚动并保持 URL 简洁 / Smooth Scroll & Clean URL
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const targetId = this.getAttribute('href').substring(1);
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function onAnchorClick(event) {
+    event.preventDefault();
+    const targetId = this.getAttribute("href").substring(1);
     const targetElement = document.getElementById(targetId);
-    
+
     if (targetElement) {
-      targetElement.scrollIntoView({
-        behavior: 'smooth'
-      });
+      targetElement.scrollIntoView({ behavior: "smooth" });
     }
   });
 });
@@ -141,6 +152,15 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 if (searchBtn) {
   searchBtn.addEventListener("click", () => {
     state.q = searchInput ? searchInput.value.trim() : "";
+    loadProjects(1);
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    state.q = searchInput.value.trim();
     loadProjects(1);
   });
 }

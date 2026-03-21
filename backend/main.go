@@ -135,6 +135,7 @@ func main() {
 	apiGroup.GET("/projects/:id", app.GetProject)
 	apiGroup.GET("/messages", app.ListMessages)
 	apiGroup.POST("/messages", app.RateLimitMiddleware(), app.CreateMessage)
+	apiGroup.GET("/feed.xml", app.GetRSSFeed)
 	apiGroup.GET("/admin/session", app.AdminSession)
 
 	adminGroup := apiGroup.Group("/admin")
@@ -151,6 +152,7 @@ func main() {
 	adminGroup.PUT("/projects/:id", app.AdminUpdateProject)
 	adminGroup.DELETE("/projects/:id", app.AdminDeleteProject)
 	adminGroup.POST("/uploads", app.AdminUpload)
+	adminGroup.GET("/uploads", app.AdminListUploads)
 
 	// 1. 托管上传文件
 	router.Static("/uploads", cfg.UploadDir)

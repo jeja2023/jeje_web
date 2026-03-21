@@ -1,8 +1,9 @@
-﻿CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE IF NOT EXISTS projects (
   id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '项目ID',
   name VARCHAR(200) NOT NULL COMMENT '项目名称',
   summary TEXT COMMENT '项目简介',
   cover_url VARCHAR(500) COMMENT '封面图URL',
+  video_url VARCHAR(500) COMMENT '演示视频URL',
   content_html MEDIUMTEXT COMMENT '项目详情HTML内容',
   external_url VARCHAR(500) COMMENT '外部链接',
   sort_order INT NOT NULL DEFAULT 0 COMMENT '排序权重(数字大在前)',

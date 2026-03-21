@@ -1,4 +1,4 @@
-﻿# API 简要说明
+# API 简要说明
 
 ## 基础信息
 - Base URL: `/api`
@@ -91,6 +91,7 @@
   - `name` 必填
   - `summary` 可选
   - `cover_url` 可选
+  - `video_url` 可选
   - `content_html` 可选（支持 HTML）
   - `external_url` 可选
   - `tags` 可选（逗号分隔）

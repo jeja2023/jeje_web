@@ -212,16 +212,33 @@ func (a *App) GetProject(c *gin.Context) {
 func (a *App) ListMessages(c *gin.Context) {
 	messages := []models.Message{}
 	page, limit, offset := parsePagination(c, 10, 50)
+	projectIDStr := strings.TrimSpace(c.Query("project_id"))
+
+	where := []string{"status = 1"}
+	args := []any{}
+
+	if projectIDStr != "" {
+		pid, err := strconv.ParseInt(projectIDStr, 10, 64)
+		if err == nil {
+			where = append(where, "project_id = ?")
+			args = append(args, pid)
+		}
+	} else {
+		where = append(where, "project_id IS NULL")
+	}
+
+	whereSQL := "WHERE " + strings.Join(where, " AND ")
 
 	var total int
-	if err := a.DB.Get(&total, "SELECT COUNT(*) FROM messages WHERE status = 1"); err != nil {
+	if err := a.DB.Get(&total, "SELECT COUNT(*) FROM messages "+whereSQL, args...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
 		return
 	}
 
-	query := `SELECT id, nickname, contact, content, status, created_at
-		FROM messages WHERE status = 1 ORDER BY created_at DESC LIMIT ? OFFSET ?`
-	if err := a.DB.Select(&messages, query, limit, offset); err != nil {
+	query := `SELECT id, project_id, nickname, contact, content, status, created_at
+		FROM messages ` + whereSQL + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	queryArgs := append(append([]any{}, args...), limit, offset)
+	if err := a.DB.Select(&messages, query, queryArgs...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
 		return
 	}
@@ -231,6 +248,7 @@ func (a *App) ListMessages(c *gin.Context) {
 
 func (a *App) CreateMessage(c *gin.Context) {
 	var payload struct {
+		ProjectID     *int64 `json:"project_id"`
 		Nickname      string `json:"nickname"`
 		Contact       string `json:"contact"`
 		Content       string `json:"content"`
@@ -269,8 +287,8 @@ func (a *App) CreateMessage(c *gin.Context) {
 
 	ip := c.ClientIP()
 	ua := c.Request.UserAgent()
-	_, err := a.DB.Exec(`INSERT INTO messages (nickname, contact, content, status, ip, ua)
-		VALUES (?, ?, ?, 0, ?, ?)`, payload.Nickname, payload.Contact, payload.Content, ip, ua)
+	_, err := a.DB.Exec(`INSERT INTO messages (project_id, nickname, contact, content, status, ip, ua)
+		VALUES (?, ?, ?, ?, 0, ?, ?)`, payload.ProjectID, payload.Nickname, payload.Contact, payload.Content, ip, ua)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "保存留言失败"})
 		return
@@ -337,13 +355,19 @@ func (a *App) AdminLogin(c *gin.Context) {
 
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("session", signed, int(2*time.Hour.Seconds()), "/", "", a.Cfg.CookieSecure, true)
-	c.JSON(http.StatusOK, gin.H{"message": "登录成功"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "登录成功",
+		"upload_max_mb": a.Cfg.UploadMaxMB,
+	})
 }
 
 func (a *App) AdminSession(c *gin.Context) {
 	cookie, err := c.Cookie("session")
 	if err != nil || cookie == "" {
-		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		c.JSON(http.StatusOK, gin.H{
+			"logged_in":     false,
+			"upload_max_mb": a.Cfg.UploadMaxMB,
+		})
 		return
 	}
 
@@ -354,24 +378,36 @@ func (a *App) AdminSession(c *gin.Context) {
 		return []byte(a.Cfg.JWTSecret), nil
 	})
 	if err != nil || !token.Valid {
-		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		c.JSON(http.StatusOK, gin.H{
+			"logged_in":     false,
+			"upload_max_mb": a.Cfg.UploadMaxMB,
+		})
 		return
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		c.JSON(http.StatusOK, gin.H{"logged_in": false})
+		c.JSON(http.StatusOK, gin.H{
+			"logged_in":     false,
+			"upload_max_mb": a.Cfg.UploadMaxMB,
+		})
 		return
 	}
 
 	if exp, ok := claims["exp"].(float64); ok {
 		if time.Unix(int64(exp), 0).Before(time.Now()) {
-			c.JSON(http.StatusOK, gin.H{"logged_in": false})
+			c.JSON(http.StatusOK, gin.H{
+				"logged_in":     false,
+				"upload_max_mb": a.Cfg.UploadMaxMB,
+			})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"logged_in": true})
+	c.JSON(http.StatusOK, gin.H{
+		"logged_in":     true,
+		"upload_max_mb": a.Cfg.UploadMaxMB,
+	})
 }
 func (a *App) AdminLogout(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
@@ -407,14 +443,16 @@ func (a *App) AdminListMessages(c *gin.Context) {
 	}
 
 	var total int
-	countQuery := "SELECT COUNT(*) FROM messages " + whereSQL
-	if err := a.DB.Get(&total, countQuery, args...); err != nil {
+	countSQL := "SELECT COUNT(*) FROM messages " + whereSQL
+	if err := a.DB.Get(&total, countSQL, args...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
 		return
 	}
 
-	query := `SELECT id, nickname, contact, content, status, created_at, ip, ua
-		FROM messages ` + whereSQL + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	query := `SELECT m.id, m.project_id, m.nickname, m.contact, m.content, m.status, m.created_at, m.ip, m.ua, IFNULL(p.name, '') AS project_name
+		FROM messages m
+		LEFT JOIN projects p ON m.project_id = p.id
+		` + whereSQL + ` ORDER BY m.created_at DESC LIMIT ? OFFSET ?`
 	queryArgs := append(append([]any{}, args...), limit, offset)
 	if err := a.DB.Select(&messages, query, queryArgs...); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载留言失败"})
@@ -525,18 +563,29 @@ func (a *App) AdminUpload(c *gin.Context) {
 	n, _ := file.Read(buf)
 	contentType := http.DetectContentType(buf[:n])
 	allowed := map[string]string{
-		"image/jpeg": ".jpg",
-		"image/png":  ".png",
-		"image/gif":  ".gif",
-		"image/webp": ".webp",
-		"video/mp4":  ".mp4",
-		"video/webm": ".webm",
+		"image/jpeg":      ".jpg",
+		"image/png":       ".png",
+		"image/gif":       ".gif",
+		"image/webp":      ".webp",
+		"image/avif":      ".avif",
+		"image/svg+xml":   ".svg",
+		"video/mp4":       ".mp4",
+		"video/webm":      ".webm",
+		"video/ogg":       ".ogg",
+		"video/quicktime": ".mov",
+		"video/x-msvideo": ".avi",
+		"video/x-matroska": ".mkv",
+		"video/x-m4v":     ".m4v",
 	}
 	ext, ok := allowed[contentType]
 	if !ok {
 		// 备选方案：尝试从文件名后缀判断
 		ext = strings.ToLower(filepath.Ext(header.Filename))
-		if ext != ".mp4" && ext != ".webm" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" && ext != ".webp" {
+		supported := map[string]bool{
+			".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true, ".avif": true, ".svg": true,
+			".mp4": true, ".webm": true, ".ogg": true, ".mov": true, ".avi": true, ".mkv": true, ".m4v": true,
+		}
+		if !supported[ext] {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "该文件格式不支持"})
 			return
 		}
@@ -578,6 +627,60 @@ func (a *App) AdminUpload(c *gin.Context) {
 	}
 	url := fmt.Sprintf("%s/%s", base, name)
 	c.JSON(http.StatusCreated, gin.H{"url": url})
+}
+
+func (a *App) AdminListUploads(c *gin.Context) {
+	dir := strings.TrimSpace(a.Cfg.UploadDir)
+	if dir == "" {
+		dir = "../storage/uploads"
+	}
+	
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusOK, gin.H{"data": []any{}, "total": 0})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "无法读取上传目录"})
+		return
+	}
+
+	type fileInfo struct {
+		Name      string    `json:"name"`
+		URL       string    `json:"url"`
+		Size      int64     `json:"size"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+
+	data := []fileInfo{}
+	base := strings.TrimRight(strings.TrimSpace(a.Cfg.UploadBaseURL), "/")
+	if base == "" {
+		base = "/uploads"
+	}
+
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		info, err := f.Info()
+		if err != nil {
+			continue
+		}
+		
+		data = append(data, fileInfo{
+			Name:      f.Name(),
+			URL:       fmt.Sprintf("%s/%s", base, f.Name()),
+			Size:      info.Size(),
+			CreatedAt: info.ModTime(),
+		})
+	}
+
+	// 按时间排序
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].CreatedAt.After(data[j].CreatedAt)
+	})
+
+	c.JSON(http.StatusOK, gin.H{"data": data, "total": len(data)})
 }
 
 func (a *App) AdminListProjects(c *gin.Context) {
@@ -800,18 +903,40 @@ func isSafeURL(raw string, allowEmpty bool) bool {
 	if raw == "" {
 		return allowEmpty
 	}
-	if strings.HasPrefix(raw, "//") {
-		return false
+
+	// 支持多行/逗号分隔的多个 URL
+	replacer := strings.NewReplacer("\n", ",", "\r", ",", " ", ",")
+	raw = replacer.Replace(raw)
+	parts := strings.Split(raw, ",")
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		
+		if strings.HasPrefix(part, "//") {
+			return false
+		}
+		
+		parsed, err := url.Parse(part)
+		if err != nil {
+			return false
+		}
+		
+		if parsed.IsAbs() {
+			scheme := strings.ToLower(parsed.Scheme)
+			if scheme != "http" && scheme != "https" {
+				return false
+			}
+		} else {
+			if !strings.HasPrefix(part, "/") {
+				return false
+			}
+		}
 	}
-	parsed, err := url.Parse(raw)
-	if err != nil {
-		return false
-	}
-	if parsed.IsAbs() {
-		scheme := strings.ToLower(parsed.Scheme)
-		return scheme == "http" || scheme == "https"
-	}
-	return strings.HasPrefix(raw, "/")
+	
+	return true
 }
 
 func normalizeTags(raw string) string {
@@ -855,4 +980,40 @@ func parseTags(raw string, limit int) []string {
 		}
 	}
 	return tags
+}
+
+func (a *App) GetRSSFeed(c *gin.Context) {
+	projects := []models.Project{}
+	query := `SELECT id, name, summary, created_at FROM projects WHERE is_public = 1 ORDER BY created_at DESC LIMIT 20`
+	if err := a.DB.Select(&projects, query); err != nil {
+		c.String(http.StatusInternalServerError, "Failed to load feed")
+		return
+	}
+
+	var rssContent strings.Builder
+	rssContent.WriteString(`<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>JEJE Atelier</title>
+  <link>http://localhost:8080/</link>
+  <description>产品作品档案与博客展示</description>
+  <language>zh-cn</language>
+`)
+
+	for _, p := range projects {
+		link := fmt.Sprintf("http://localhost:8080/project?id=%d", p.ID)
+		rssContent.WriteString(fmt.Sprintf(`  <item>
+    <title><![CDATA[%s]]></title>
+    <link>%s</link>
+    <guid>%s</guid>
+    <description><![CDATA[%s]]></description>
+    <pubDate>%s</pubDate>
+  </item>
+`, p.Name, link, link, p.Summary, p.CreatedAt.Format(time.RFC1123Z)))
+	}
+
+	rssContent.WriteString(`</channel>
+</rss>`)
+
+	c.Data(http.StatusOK, "application/rss+xml; charset=utf-8", []byte(rssContent.String()))
 }

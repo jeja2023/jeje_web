@@ -1,49 +1,100 @@
-<!-- 项目详情 HTML / Project HTML -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>项目详情 - JEJE WEB</title>
-    <link rel="stylesheet" href="/globals/global.css" />
-    <link rel="stylesheet" href="project.css" />
-  </head>
-  <body>
-    <header>
-      <div class="logo">JEJE WEB</div>
-      <nav>
-        <a href="/">首页</a>
-        <a href="/messages">致信交流</a>
-        <a href="/admin">后台管理</a>
-      </nav>
-    </header>
 
-    <main class="container">
-      <section class="section animate-fade-in">
-        <div id="projectDetail">
-          <!-- 内容由 JS 动态生成 -->
-          <div class="text-center" style="padding: 100px 0;">
-            <div class="spinner" style="margin: 0 auto;"></div>
-            <p class="text-muted mt-2">正在为您加载作品详情...</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目详情 | JEJE Atelier</title>
+  <link rel="stylesheet" href="/globals/global.css" />
+  <link rel="stylesheet" href="project.css" />
+  <script src="/globals/libs/marked.min.js"></script>
+  <link rel="stylesheet" href="/globals/libs/github.min.css" id="hl-style" />
+  <script src="/globals/libs/highlight.min.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="logo-lockup">
+      <span class="logo-mark">JE</span>
+      <div class="logo-stack">
+        <span class="logo">JEJE Atelier</span>
+        <span class="logo-subtitle">产品作品档案</span>
+      </div>
+    </div>
+    <nav>
+      <a href="/">首页</a>
+      <a href="/messages">来信交流</a>
+      <a href="/admin">后台管理</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="project-shell section animate-fade-in">
+      <div class="project-page-head">
+        <span class="eyebrow">项目详情</span>
+        <p class="page-lead">
+          查看单个项目的完整介绍、媒体素材与外部链接。如果你对其中某个实现细节感兴趣，也欢迎继续留言交流。
+        </p>
+      </div>
+      <div id="projectDetail">
+        <div class="project-loading text-center">
+          <div class="project-header">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="project-meta-bar mt-4">
+              <div class="project-meta-item"><span>浏览次数</span><strong>...</strong></div>
+              <div class="project-meta-item"><span>阅读预计</span><strong>...</strong></div>
+              <div class="project-meta-item"><span>发布日期</span><strong>...</strong></div>
+            </div>
           </div>
+          <p class="text-muted mt-2">正在为您加载作品详情...</p>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="section">
-        <div class="card" style="padding: 40px; background: var(--bg-offset); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;">
-          <div>
-            <h3 style="margin-bottom: 8px;">想就此作品进行交流？</h3>
-            <p class="text-muted">欢迎在留言板写下您的建议或合作意向。</p>
-          </div>
-          <a class="btn primary" href="/messages">前往对话</a>
+    <section class="section">
+      <div class="project-comments card">
+        <div class="comments-header">
+          <h3>文章留言</h3>
+          <p class="text-muted">留下你的想法或反馈，一起交流。</p>
         </div>
-      </section>
-    </main>
 
-    <footer>
-      <p>© 2026 JEJE WEB</p>
-    </footer>
+        <div class="form-card mt-3">
+          <form id="commentForm">
+            <input name="project_id" id="commentProjectId" type="hidden" />
+            <div class="form-row grid grid-2 gap-3 mb-3">
+              <input name="nickname" placeholder="您的昵称 *" required />
+              <input name="contact" placeholder="联系方式 (Email/微信，不公开)" />
+              <input name="website" class="visually-hidden" tabindex="-1" autocomplete="off" />
+            </div>
+            <textarea name="content" class="mb-3" placeholder="你想对我说点什么？写下你的想法或改进建议吧... *" required></textarea>
+            <div class="form-row flex flex-wrap gap-3 items-center">
+              <div class="captcha-box flex items-center gap-2">
+                <span class="eyebrow" style="font-size: 0.6rem; opacity: 0.7;">安全验证</span>
+                <span id="captchaQuestion" class="captcha-question">...</span>
+                <input name="captcha_answer" class="captcha-input"
+                  style="width: 100px; padding: 8px 12px; border-radius: 12px;" placeholder="结果 *" required />
+                <input name="captcha_id" type="hidden" />
+                <button type="button" id="refreshCaptchaBtn" class="btn small" style="min-width: 60px;"
+                  title="刷新验证码">刷新</button>
+              </div>
+              <button type="submit" class="btn primary px-8" style="min-height: 52px; flex: 1;">发表留言</button>
+            </div>
+          </form>
+        </div>
 
-    <script type="module" src="project.js"></script>
-  </body>
+        <div id="commentsList" class="mt-4 list">
+          <p class="text-center text-muted">暂无留言，来说两句吧。</p>
+        </div>
+        <div id="commentsPagination" class="pagination mt-4"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 JEJE Atelier。每个案例都值得被完整讲述。</p>
+  </footer>
+
+  <script type="module" src="project.js"></script>
+</body>
+
 </html>

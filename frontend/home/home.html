@@ -1,58 +1,83 @@
-<!-- 首页 HTML / Home HTML -->
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JEJE WEB | 简洁、现代的个人空间</title>
-    <meta name="description" content="JEJE WEB 是一个采用 Go + Vanilla JS 构建的极简个人网站，展示个人项目作品、技术分享及生活感悟。" />
-    <meta name="keywords" content="个人网站, 个人博客, 项目展示, 技术分享" />
+    <title>产品与交互作品档案 | JEJE Atelier</title>
+    <meta
+      name="description"
+      content="JEJE Atelier 是一个围绕产品、交互与实现过程搭建的作品档案站，展示案例、细节和开放交流入口。"
+    />
+    <meta name="keywords" content="作品集, 产品设计, 前端开发, 项目展示, 交互设计" />
     <link rel="stylesheet" href="/globals/global.css" />
     <link rel="stylesheet" href="home.css" />
   </head>
   <body>
     <header>
-      <div class="logo">JEJE WEB</div>
+      <div class="logo-lockup">
+        <span class="logo-mark">JE</span>
+        <div class="logo-stack">
+          <span class="logo">JEJE Atelier</span>
+          <span class="logo-subtitle">产品作品档案</span>
+        </div>
+      </div>
       <nav>
         <a href="/" class="active">首页</a>
-        <a href="#projects">项目作品</a>
-        <a href="/messages">致信交流</a>
+        <a href="/messages">来信交流</a>
         <a href="/admin">后台管理</a>
       </nav>
     </header>
 
-    <main class="container">
-      <section class="hero section animate-fade-in">
-        <div class="hero-content">
-          <h1>交付价值，<br/>探索设计的边界</h1>
-          <p class="mt-4 text-muted" style="max-width: 600px; font-size: 1.1rem;">
-            专注于打造极致的数字产品体验。在这里，我将分享开发过的产品介绍与技术沉淀，通过设计与技术的结合，为用户创造非凡价值。
+    <main class="container home-flow">
+      <section class="hero section animate-fade-in home-block">
+        <div class="hero-intro card">
+          <span class="eyebrow">个人档案</span>
+          <h1>交付价值，探索设计的边界</h1>
+          <p class="hero-lead">
+            专注于打造极致的数字产品体验。在这里，我会把产品构思、实现方式与最终呈现完整记录下来，让设计表达与工程落地都能被看见。
           </p>
-          <div class="mt-4 flex gap-2">
-            <a class="btn primary" href="#projects">查看作品</a>
+          <p class="hero-note">聚焦产品策略、交互细节与前端实现，持续更新真实上线项目。</p>
+          <div class="hero-actions">
             <a class="btn" href="/messages">联系我</a>
           </div>
         </div>
       </section>
 
-      <section id="projects" class="section">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="section-title">精选作品</h2>
-          <div class="search-wrap">
-            <input id="projectSearchInput" placeholder="搜索项目..." />
+      <section id="projects" class="section home-block">
+        <div class="projects-panel card">
+          <div class="section-header">
+            <div>
+              <span class="eyebrow">项目作品</span>
+              <h2 class="section-title">项目作品</h2>
+              <p class="section-copy">
+                这里收录的是公开可见的项目条目。你可以按关键词与标签快速浏览，也可以进入详情页查看完整介绍与演示内容。
+              </p>
+            </div>
+            <div class="search-tools">
+              <div class="search-wrap">
+                <input id="projectSearchInput" placeholder="搜索项目..." />
+              </div>
+              <button id="projectSearchBtn" class="btn small" type="button">搜索</button>
+              <button id="projectSearchReset" class="btn small" type="button">重置</button>
+            </div>
           </div>
+
+          <div id="projectTagList" class="tag-filter-list mb-4"></div>
+          <div id="projectGrid" class="grid"></div>
+          <div id="projectPagination" class="mt-4"></div>
         </div>
-        
-        <div id="projectTagList" class="tag-filter-list mb-4"></div>
-        <div id="projectGrid" class="grid"></div>
-        <div id="projectPagination" class="mt-4"></div>
       </section>
 
-      <section class="section text-center">
-        <div class="card" style="padding: 60px; background: var(--bg-offset);">
-          <h3>对我的项目感兴趣？</h3>
-          <p class="text-muted mt-2">欢迎在留言板分享您的想法，或通过详情页深入了解每一个产品背后的细节。</p>
-          <div class="mt-4">
+      <section class="section home-block">
+        <div class="home-cta card">
+          <div>
+            <span class="eyebrow">继续交流</span>
+            <h3>对我的项目感兴趣？</h3>
+            <p class="text-muted mt-2">
+              欢迎在留言板分享你的想法，或告诉我你想进一步了解哪一类项目。
+            </p>
+          </div>
+          <div class="home-cta-actions">
             <a href="/messages" class="btn primary">前往留言板</a>
           </div>
         </div>
@@ -60,9 +85,8 @@
     </main>
 
     <footer>
-      <p>© 2026 JEJE WEB. 秉持简洁、专业的个人空间.</p>
+      <p>© 2026 JEJE Atelier。以案例叙事、过程记录与开放交流为核心。</p>
     </footer>
-
 
     <script type="module" src="home.js"></script>
   </body>

@@ -3,13 +3,23 @@ package utils
 
 import (
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 )
+
+type projectAssetRefs struct {
+	CoverURL    string `db:"cover_url"`
+	VideoURL    string `db:"video_url"`
+	ContentHTML string `db:"content_html"`
+}
+
+var assetAttrPattern = regexp.MustCompile(`(?i)(?:src|href)\s*=\s*["']([^"'#]+)["']`)
 
 // StartImageCleanupTask 启动定时清理孤立图片的任务
 func StartImageCleanupTask(db *sqlx.DB, uploadDir string, interval time.Duration) {
@@ -32,21 +42,20 @@ func cleanOrphanedImages(db *sqlx.DB, uploadDir string) {
 		return
 	}
 
-	// 2. 获取数据库中正在引用的图片
-	// 这里查询项目封面图
-	var coverUrls []string
-	if err := db.Select(&coverUrls, "SELECT cover_url FROM projects WHERE cover_url != ''"); err != nil {
-		log.Printf("清理任务：获取封面引用失败 %v", err)
+	// 2. 获取数据库中正在引用的资源
+	var refs []projectAssetRefs
+	if err := db.Select(&refs, "SELECT cover_url, video_url, content_html FROM projects"); err != nil {
+		log.Printf("清理任务：获取资源引用失败 %v", err)
 		return
 	}
 
 	// 提取文件名存入 Map 方便查找
 	usedFiles := make(map[string]bool)
-	for _, url := range coverUrls {
-		parts := strings.Split(url, "/")
-		if len(parts) > 0 {
-			filename := parts[len(parts)-1]
-			usedFiles[filename] = true
+	for _, ref := range refs {
+		addUsedFile(usedFiles, ref.CoverURL)
+		addUsedFile(usedFiles, ref.VideoURL)
+		for _, assetURL := range extractAssetURLs(ref.ContentHTML) {
+			addUsedFile(usedFiles, assetURL)
 		}
 	}
 
@@ -81,4 +90,45 @@ func cleanOrphanedImages(db *sqlx.DB, uploadDir string) {
 	} else {
 		log.Println("清理任务完成，未发现过期孤立文件")
 	}
+}
+
+func extractAssetURLs(content string) []string {
+	if strings.TrimSpace(content) == "" {
+		return nil
+	}
+	matches := assetAttrPattern.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return nil
+	}
+	urls := make([]string, 0, len(matches))
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+		urls = append(urls, match[1])
+	}
+	return urls
+}
+
+func addUsedFile(usedFiles map[string]bool, raw string) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return
+	}
+
+	parsed, err := url.Parse(raw)
+	if err == nil && parsed.Path != "" {
+		raw = parsed.Path
+	}
+
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return
+	}
+
+	filename := filepath.Base(raw)
+	if filename == "." || filename == "/" || filename == `\` || filename == "" {
+		return
+	}
+	usedFiles[filename] = true
 }

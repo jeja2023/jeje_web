@@ -21,14 +21,16 @@ type Project struct {
 
 type Message struct {
 	ID        int64     `db:"id" json:"id"`
+	ProjectID *int64    `db:"project_id" json:"project_id,omitempty"`
 	Nickname  string    `db:"nickname" json:"nickname"`
 	Contact   string    `db:"contact" json:"contact"`
 	Content   string    `db:"content" json:"content"`
 	Status    int       `db:"status" json:"status"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	IP        string    `db:"ip" json:"ip"`
-	UA        string    `db:"ua" json:"ua"`
-	Replies   []Reply   `json:"replies"`
+	UA          string    `db:"ua" json:"ua"`
+	ProjectName string    `json:"project_name,omitempty" db:"project_name"`
+	Replies     []Reply   `json:"replies" db:"-"`
 }
 
 type Reply struct {

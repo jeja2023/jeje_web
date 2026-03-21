@@ -22,6 +22,15 @@ func EnsureSchema(db *sqlx.DB) error {
 	if err := ensureColumn(db, "projects", "video_url", "VARCHAR(500)"); err != nil {
 		return err
 	}
+	if err := ensureColumn(db, "messages", "project_id", "BIGINT NULL COMMENT '关联的项目或文章ID'"); err != nil {
+		return err
+	}
+	if err := ensureColumn(db, "messages", "ip", "VARCHAR(64)"); err != nil {
+		return err
+	}
+	if err := ensureColumn(db, "messages", "ua", "VARCHAR(255)"); err != nil {
+		return err
+	}
 	return nil
 }
 
