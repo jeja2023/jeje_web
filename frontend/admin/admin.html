@@ -270,27 +270,89 @@
           <div class="panel-card filter-panel mb-4">
             <div class="filter-panel-head">
               <h3>账号安全管理</h3>
-              <p class="text-muted">修改管理员登录密码。建议定期更新以保证系统安全。</p>
+              <p class="text-muted">修改管理员登录密码。建议定期更新并避免使用简单组合以保证系统全天候安全。</p>
             </div>
           </div>
-          <div class="form-card max-w-sm" style="max-width: 500px;">
-            <form id="passwordForm">
-              <div class="admin-form-section no-border-padding">
-                <div class="form-group mb-4">
-                  <label>旧密码 *</label>
-                  <input name="old_password" type="password" placeholder="为了安全，请输入当前使用的密码" required />
+
+          <div class="admin-grid">
+            <div class="form-card" style="padding: 34px;">
+              <form id="passwordForm" class="flex flex-column gap-6">
+                <div class="admin-form-section-head mb-5">
+                  <h4>重置身份凭证</h4>
                 </div>
-                <div class="form-group mb-4">
-                  <label>新密码 *</label>
-                  <input name="new_password" type="password" placeholder="请输入 6 位以上的新密码" minlength="6" required />
+
+                <div class="password-fields-container">
+                  <div class="form-group mb-5">
+                    <label>当前旧密码 *</label>
+                    <div class="password-input-wrapper">
+                      <span class="password-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      </span>
+                      <input name="old_password" type="password" placeholder="验证您的当前身份" required />
+                      <button type="button" class="password-toggle-btn" title="显示/隐藏密码">
+                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="form-group mb-5">
+                    <label>设置新密码 *</label>
+                    <div class="password-input-wrapper">
+                      <span class="password-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3-3.5 3.5z"></path></svg>
+                      </span>
+                      <input name="new_password" type="password" placeholder="建议包含字母与数字" minlength="6" required />
+                      <button type="button" class="password-toggle-btn" title="显示/隐藏密码">
+                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="form-group mb-8">
+                    <label>确认新密码 *</label>
+                    <div class="password-input-wrapper">
+                      <span class="password-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </span>
+                      <input name="confirm_password" type="password" placeholder="再次输入新密码" minlength="6" required />
+                      <button type="button" class="password-toggle-btn" title="显示/隐藏密码">
+                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div class="form-group mb-6">
-                  <label>确认新密码 *</label>
-                  <input name="confirm_password" type="password" placeholder="请再次输入新密码" minlength="6" required />
+
+                <div class="flex">
+                  <button class="btn primary flex-1 btn-primary-heavy" type="submit">立即应用密码变更</button>
                 </div>
-                <button class="btn primary btn-block" type="submit">立即修改密码</button>
+              </form>
+            </div>
+
+            <div class="panel-card security-tips-card">
+              <div class="flex flex-column gap-5">
+                <div class="flex items-center gap-3">
+                  <div class="security-badge">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  </div>
+                  <h3 class="m-0" style="font-size: 1.15rem;">安全防护提示</h3>
+                </div>
+                <ul class="security-tips-list">
+                  <li>避免与其他社交平台重复使用同一套密码</li>
+                  <li>推荐包含大小写混合及特殊符号，增加破解难度</li>
+                  <li>切勿将管理员账号告知他人或写在不安全的地方</li>
+                  <li>系统会定期检测登录异常，建议每季进行账号维护</li>
+                </ul>
+                <div class="security-status-box mt-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-muted" style="font-size: 0.85rem;">当前环境安全级别</span>
+                    <span class="badge-secure">SSL 加密连接</span>
+                  </div>
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </section>

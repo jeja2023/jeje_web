@@ -1158,6 +1158,25 @@ if (logoutBtn) {
 }
 
 if (passwordForm) {
+  // 密码可见性切换
+  passwordForm.querySelectorAll(".password-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = btn.parentElement.querySelector("input");
+      const eyeOpen = btn.querySelector(".eye-open");
+      const eyeClosed = btn.querySelector(".eye-closed");
+
+      if (input.type === "password") {
+        input.type = "text";
+        eyeOpen.classList.add("hidden");
+        eyeClosed.classList.remove("hidden");
+      } else {
+        input.type = "password";
+        eyeOpen.classList.remove("hidden");
+        eyeClosed.classList.add("hidden");
+      }
+    });
+  });
+
   passwordForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(passwordForm));
@@ -1175,8 +1194,12 @@ if (passwordForm) {
           new_password: data.new_password,
         }),
       });
-      showToast(res.message || "密码修改成功");
+      showToast(res.message || "密码修改成功", "success");
       passwordForm.reset();
+      // 重置密码框类型
+      passwordForm.querySelectorAll("input[type='text']").forEach(input => input.type = 'password');
+      passwordForm.querySelectorAll(".eye-open").forEach(ic => ic.classList.remove("hidden"));
+      passwordForm.querySelectorAll(".eye-closed").forEach(ic => ic.classList.add("hidden"));
     } catch (err) {
       console.error("修改密码失败:", err);
       showToast(err.message || "修改密码失败", "error");

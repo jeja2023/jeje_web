@@ -927,3 +927,154 @@
   color: var(--muted);
   text-align: center;
 }
+
+/* ========== 账号设置模块优化 / Account Settings Refinement ========== */
+.password-fields-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--accent);
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-left: 48px !important;
+  padding-right: 52px !important;
+  height: 54px !important;
+  font-size: 1rem !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(18, 63, 60, 0.12) !important;
+  transition: all 0.24s ease !important;
+}
+
+.password-input-wrapper input:focus {
+  background: #fff !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 8px 20px rgba(18, 63, 60, 0.06) !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--subtle);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.password-toggle-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.security-tips-card {
+  padding: 32px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+  border: 1px dashed rgba(18, 63, 60, 0.15) !important;
+  box-shadow: none !important;
+}
+
+.security-badge {
+  width: 44px;
+  height: 44px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.security-tips-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.security-tips-list li {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.security-tips-list li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.security-status-box {
+  padding: 18px;
+  background: rgba(18, 63, 60, 0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(18, 63, 60, 0.06);
+}
+
+.badge-secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--success);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-secure::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  animation: pulseLight 2s infinite;
+}
+
+@keyframes pulseLight {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+/* Helper class for toggling elements */
+.hidden {
+  display: none !important;
+}
