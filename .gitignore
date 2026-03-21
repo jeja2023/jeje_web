@@ -32,6 +32,10 @@ backend/.env
 # Uploads & Runtime Storage
 storage/uploads/*
 !storage/uploads/.gitkeep
+storage/*.db
+storage/*.db-shm
+storage/*.db-wal
+storage/*.sqlite
 
 # DB data
 db_data/
