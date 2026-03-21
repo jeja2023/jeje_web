@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS messages (
   contact VARCHAR(200) COMMENT '联系方式',
   content TEXT NOT NULL COMMENT '留言内容',
   status TINYINT NOT NULL DEFAULT 0 COMMENT '状态(0:未处理 1:已处理)',
+  project_id BIGINT NULL COMMENT '关联的项目或文章ID',
   ip VARCHAR(64) COMMENT 'IP地址',
   ua VARCHAR(255) COMMENT 'User-Agent',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
