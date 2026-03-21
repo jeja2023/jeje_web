@@ -16,5 +16,6 @@ services:
       - APP_ENV=prod
       - APP_ADDR=:8080
       - DB_NAME=jeje.db
+      - UPLOAD_DIR=/app/storage/uploads
       - JWT_SECRET=please-change-it-to-your-key-123
       - UPLOAD_MAX_MB=1024
