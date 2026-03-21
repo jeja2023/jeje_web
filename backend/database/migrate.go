@@ -12,47 +12,47 @@ func EnsureSchema(db *sqlx.DB) error {
 func createTables(db *sqlx.DB) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS projects (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
-			name VARCHAR(200) NOT NULL,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
 			summary TEXT,
-			cover_url VARCHAR(500),
-			video_url VARCHAR(500),
-			content_html MEDIUMTEXT,
-			external_url VARCHAR(500),
-			sort_order INT NOT NULL DEFAULT 0,
-			is_public TINYINT NOT NULL DEFAULT 1,
-			view_count INT NOT NULL DEFAULT 0,
-			tags VARCHAR(255),
+			cover_url TEXT,
+			video_url TEXT,
+			content_html TEXT,
+			external_url TEXT,
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			is_public INTEGER NOT NULL DEFAULT 1,
+			view_count INTEGER NOT NULL DEFAULT 0,
+			tags TEXT,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
 		`CREATE TABLE IF NOT EXISTS messages (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
-			nickname VARCHAR(100) NOT NULL,
-			contact VARCHAR(200),
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			nickname TEXT NOT NULL,
+			contact TEXT,
 			content TEXT NOT NULL,
-			status TINYINT NOT NULL DEFAULT 0,
-			project_id BIGINT NULL COMMENT '关联的项目ID',
-			ip VARCHAR(64),
-			ua VARCHAR(255),
-			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			INDEX idx_messages_status (status),
-			INDEX idx_messages_created (created_at)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
-		`CREATE TABLE IF NOT EXISTS replies (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
-			message_id BIGINT NOT NULL,
-			content TEXT NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			INDEX idx_replies_message (message_id),
-			CONSTRAINT fk_replies_message FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
-		`CREATE TABLE IF NOT EXISTS admins (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
-			username VARCHAR(100) NOT NULL UNIQUE,
-			password_hash VARCHAR(255) NOT NULL,
+			status INTEGER NOT NULL DEFAULT 0,
+			project_id INTEGER,
+			ip TEXT,
+			ua TEXT,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status);`,
+		`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);`,
+		`CREATE TABLE IF NOT EXISTS replies (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			message_id INTEGER NOT NULL,
+			content TEXT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_replies_message ON replies(message_id);`,
+		`CREATE TABLE IF NOT EXISTS admins (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			username TEXT NOT NULL UNIQUE,
+			password_hash TEXT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
 	}
 
 	for _, q := range queries {

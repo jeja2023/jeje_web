@@ -134,7 +134,7 @@ func (a *App) ListProjects(c *gin.Context) {
 		args = append(args, like, like, like)
 	}
 	if tag != "" {
-		where = append(where, "FIND_IN_SET(?, tags)")
+		where = append(where, "',' || tags || ',' LIKE '%,' || ? || ',%'")
 		args = append(args, tag)
 	}
 	whereSQL := "WHERE " + strings.Join(where, " AND ")
@@ -706,7 +706,7 @@ func (a *App) AdminListProjects(c *gin.Context) {
 		args = append(args, like, like, like)
 	}
 	if tag != "" {
-		where = append(where, "FIND_IN_SET(?, tags)")
+		where = append(where, "',' || tags || ',' LIKE '%,' || ? || ',%'")
 		args = append(args, tag)
 	}
 	whereSQL := ""

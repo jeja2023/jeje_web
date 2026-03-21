@@ -11,14 +11,8 @@ import (
 type Config struct {
 	AppEnv            string
 	Addr              string
-	DBHost            string
-	DBPort            string
-	DBUser            string
-	DBPassword        string
 	DBName            string
 	DBMaxOpenConns    int
-	DBMaxIdleConns    int
-	DBConnMaxLifetime time.Duration
 	JWTSecret         string
 	CookieSecure      bool
 	AdminBootstrap    bool
@@ -44,14 +38,8 @@ func LoadConfig() Config {
 	cfg := Config{}
 	cfg.AppEnv = getEnv("APP_ENV", "dev")
 	cfg.Addr = getEnv("APP_ADDR", ":8080")
-	cfg.DBHost = getEnv("DB_HOST", "mysql")
-	cfg.DBPort = getEnv("DB_PORT", "3306")
-	cfg.DBUser = getEnv("DB_USER", "jeje")
-	cfg.DBPassword = getEnv("DB_PASSWORD", "jeje123")
-	cfg.DBName = getEnv("DB_NAME", "jeje_web")
-	cfg.DBMaxOpenConns = getEnvInt("DB_MAX_OPEN_CONNS", 20)
-	cfg.DBMaxIdleConns = getEnvInt("DB_MAX_IDLE_CONNS", 5)
-	cfg.DBConnMaxLifetime = time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME_MINUTES", 30)) * time.Minute
+	cfg.DBName = getEnv("DB_NAME", "jeje.db")
+	cfg.DBMaxOpenConns = getEnvInt("DB_MAX_OPEN_CONNS", 1)
 	cfg.JWTSecret = getEnv("JWT_SECRET", "change-me")
 	cfg.CookieSecure = getEnvBool("COOKIE_SECURE", cfg.AppEnv == "prod")
 	cfg.AdminBootstrap = getEnvBool("ADMIN_BOOTSTRAP", true)

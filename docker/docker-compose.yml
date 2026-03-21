@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  jeje-web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: jeje-web-app
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      # 将整个 storage 目录映射出来。此时 jeje.db 和 uploads/ 都在这里。
+      - ../storage:/app/storage
+    environment:
+      - APP_ENV=prod
+      - APP_ADDR=:8080
+      - DB_NAME=jeje.db
+      - JWT_SECRET=please-change-it-to-your-key-123
+      - UPLOAD_MAX_MB=1024

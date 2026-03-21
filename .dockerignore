@@ -1,0 +1,28 @@
+# 忽略版本控制
+.git
+.gitignore
+
+# 忽略本地开发工具
+.vscode
+.agents
+.agent
+.gemini
+
+# 忽略后端编译产物
+**/*.exe
+**/temp*
+**/test*
+backend/.env
+
+# 忽略存储文件 (这些应该通过 Volume 挂载，不应打入镜像)
+storage/
+**/*.db
+**/*.db-journal
+
+# 忽略 Docker 自身的配置目录
+docker/
+
+# 忽略 README 和日志
+README.md
+更新日志.md
+docs/

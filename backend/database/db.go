@@ -1,27 +1,25 @@
-// Database Connection
+// Database Connection (SQLite)
 package database
 
 import (
-	"fmt"
+	"log"
+	"path/filepath"
 	"jeje_web/config"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3" // SQLite Driver
 )
 
 func OpenDB(cfg config.Config) (*sqlx.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&charset=utf8mb4&loc=Local",
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBName,
-	)
-	db, err := sqlx.Connect("mysql", dsn)
+	// 确保数据库文件存放在与上传文件同一个 storage 目录下，便于备份
+	dbPath := filepath.Join(cfg.UploadDir, "..", "jeje.db")
+	db, err := sqlx.Connect("sqlite3", dbPath)
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(cfg.DBMaxOpenConns)
-	db.SetMaxIdleConns(cfg.DBMaxIdleConns)
-	db.SetConnMaxLifetime(cfg.DBConnMaxLifetime)
+	
+	// SQLite 调优配置
+	db.SetMaxOpenConns(1) // SQLite 同时只能一个进程写，所以设为 1 最稳
+	log.Printf("数据库连接成功 (SQLite): %s", dbPath)
 	return db, nil
 }
