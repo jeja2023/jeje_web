@@ -1,5 +1,5 @@
 # 第一阶段：编译 Go 后端
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
