@@ -6,6 +6,9 @@ RUN apk add --no-cache build-base
 
 WORKDIR /app
 
+# 设置 Go 代理以加速国内依赖下载
+ENV GOPROXY=https://goproxy.cn,direct
+
 # 复制依赖文件并下载
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
