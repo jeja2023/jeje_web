@@ -577,6 +577,8 @@ function setLoggedIn(loggedIn) {
   if (adminPanel) adminPanel.hidden = !loggedIn;
   if (!loggedIn) {
     state.statsLoaded = false;
+    // 退出或失效后显式清除本地备份 Token
+    localStorage.removeItem("admin_token");
   }
 }
 
@@ -1082,6 +1084,10 @@ if (loginForm) {
         body: JSON.stringify(payload),
       });
       syncUploadLimit(data);
+      // 登录成功时，持久化保存 Token 应对 Cookie 拦截
+      if (data.token) {
+        localStorage.setItem("admin_token", data.token);
+      }
       showToast("登录成功", "success");
       setLoggedIn(true);
       await loadAdminData();

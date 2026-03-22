@@ -357,13 +357,21 @@ func (a *App) AdminLogin(c *gin.Context) {
 	c.SetCookie("session", signed, int(2*time.Hour.Seconds()), "/", "", a.Cfg.CookieSecure, true)
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "登录成功",
+		"token":         signed,
 		"upload_max_mb": a.Cfg.UploadMaxMB,
 	})
 }
 
 func (a *App) AdminSession(c *gin.Context) {
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie == "" {
+	tokenStr, err := c.Cookie("session")
+	if err != nil || tokenStr == "" {
+		authHeader := c.GetHeader("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+	}
+
+	if tokenStr == "" {
 		c.JSON(http.StatusOK, gin.H{
 			"logged_in":     false,
 			"upload_max_mb": a.Cfg.UploadMaxMB,
@@ -371,7 +379,7 @@ func (a *App) AdminSession(c *gin.Context) {
 		return
 	}
 
-	token, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("invalid signing method")
 		}

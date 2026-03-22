@@ -2,12 +2,20 @@
 export const API_BASE = "/api";
 
 export async function fetchJSON(url, options = { headers: {} }) {
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+  };
+
+  // 如果本地存储中有备份 Token，则放入请求头 (Bearer 模式)
+  const token = localStorage.getItem("admin_token");
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      ...options.headers,
-      "Content-Type": "application/json",
-    },
+    headers,
     credentials: "include",
   });
 

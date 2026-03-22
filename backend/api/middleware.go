@@ -1,9 +1,10 @@
-﻿// 中间件 / Middleware
+// 中间件 / Middleware
 package api
 
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,14 +30,22 @@ func (a *App) RateLimitMiddleware() gin.HandlerFunc {
 
 func (a *App) AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cookie, err := c.Cookie("session")
-		if err != nil || cookie == "" {
+		tokenStr, err := c.Cookie("session")
+		if err != nil || tokenStr == "" {
+			// 如果 Cookie 不存在，则尝试从 Authorization 头获取 (Bearer <token>)
+			authHeader := c.GetHeader("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+			}
+		}
+
+		if tokenStr == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
 			c.Abort()
 			return
 		}
 
-		token, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("无效的签名方法")
 			}
