@@ -1,5 +1,5 @@
 // 项目详情脚本
-import { API_BASE, fetchJSON, escapeHTML, showToast, renderPagination } from "/globals/global.js";
+import { API_BASE, fetchJSON, escapeHTML, showToast, renderPagination, initFooter } from "/globals/global.js";
 
 const detail = document.getElementById("projectDetail");
 
@@ -559,3 +559,4 @@ if (commentForm) {
 }
 
 load();
+initFooter();

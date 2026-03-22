@@ -354,6 +354,33 @@
               </div>
             </div>
           </div>
+
+          <div class="admin-grid mt-4">
+            <div class="form-card" style="padding: 34px; grid-column: span 2;">
+              <form id="siteSettingsForm" class="flex flex-column gap-6">
+                <div class="admin-form-section-head mb-5">
+                  <h4>站点备案信息配置</h4>
+                </div>
+                <div class="grid grid-2 gap-4">
+                    <div class="form-group">
+                      <label>ICP 备案号</label>
+                      <input name="icp_beian" placeholder="例如：京ICP备XXXXXXXX号-X" />
+                    </div>
+                    <div class="form-group">
+                      <label>公安备案号</label>
+                      <input name="gongan_beian" placeholder="例如：京公网安备 XXXXXXXXXXXXXX号" />
+                    </div>
+                </div>
+                <div class="form-group">
+                  <label>公安备案跳转链接</label>
+                  <input name="gongan_url" placeholder="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=..." />
+                </div>
+                <div class="flex" style="max-width: 200px;">
+                  <button class="btn primary flex-1 btn-primary-heavy" type="submit">保存备案配置</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </section>
     </main>

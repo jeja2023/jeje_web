@@ -1,5 +1,5 @@
 // 首页脚本
-import { API_BASE, fetchJSON, formatDate, renderPagination, escapeHTML } from "/globals/global.js";
+import { API_BASE, fetchJSON, formatDate, renderPagination, escapeHTML, initFooter } from "/globals/global.js";
 
 const grid = document.getElementById("projectGrid");
 const pagination = document.getElementById("projectPagination");
@@ -176,3 +176,4 @@ if (searchReset) {
 }
 
 loadTags().finally(() => loadProjects());
+initFooter();

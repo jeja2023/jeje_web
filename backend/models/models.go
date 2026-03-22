@@ -46,3 +46,9 @@ type Admin struct {
 	PasswordHash string    `db:"password_hash"`
 	CreatedAt    time.Time `db:"created_at"`
 }
+
+type Setting struct {
+	K         string    `db:"k" json:"k"`
+	V         string    `db:"v" json:"v"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}

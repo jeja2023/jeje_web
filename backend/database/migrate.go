@@ -53,6 +53,11 @@ func createTables(db *sqlx.DB) error {
 			password_hash TEXT NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
+		`CREATE TABLE IF NOT EXISTS settings (
+			k TEXT PRIMARY KEY,
+			v TEXT NOT NULL,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
 	}
 
 	for _, q := range queries {

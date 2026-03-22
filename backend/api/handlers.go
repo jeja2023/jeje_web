@@ -1067,3 +1067,38 @@ func (a *App) GetRSSFeed(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/rss+xml; charset=utf-8", []byte(rssContent.String()))
 }
+
+func (a *App) ListSettings(c *gin.Context) {
+	settings := []models.Setting{}
+	if err := a.DB.Select(&settings, "SELECT k, v, updated_at FROM settings"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "加载配置失败"})
+		return
+	}
+	res := make(map[string]string)
+	for _, s := range settings {
+		res[s.K] = s.V
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+func (a *App) AdminUpdateSettings(c *gin.Context) {
+	var payload map[string]string
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的参数"})
+		return
+	}
+
+	for k, v := range payload {
+		// 校验键名是否合法 (icp_beian, gongan_beian, gongan_url 等)
+		_, err := a.DB.Exec(`INSERT INTO settings (k, v, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+			ON CONFLICT(k) DO UPDATE SET v = excluded.v, updated_at = CURRENT_TIMESTAMP`, k, v)
+		if err != nil {
+			log.Printf("更新配置 [%s] 失败: %v", k, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "部分配置保存失败"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "配置更新成功"})
+}
+

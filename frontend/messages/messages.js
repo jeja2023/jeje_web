@@ -1,5 +1,5 @@
 // 留言板脚本 / Messages Script
-import { API_BASE, fetchJSON, formatDate, showToast, renderPagination, showLoading, hideLoading, renderEmpty } from "/globals/global.js";
+import { API_BASE, fetchJSON, formatDate, showToast, renderPagination, showLoading, hideLoading, renderEmpty, initFooter } from "/globals/global.js";
 
 const list = document.getElementById("messageList");
 const pagination = document.getElementById("messagePagination");
@@ -145,3 +145,4 @@ form.addEventListener("submit", async (event) => {
 
 loadMessages();
 loadCaptcha();
+initFooter();

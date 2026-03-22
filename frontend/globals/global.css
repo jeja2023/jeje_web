@@ -581,6 +581,42 @@ footer {
   text-align: center;
 }
 
+.footer-beian {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+.footer-beian a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--subtle);
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.footer-beian a:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.footer-beian img {
+  width: 16px;
+  height: 16px;
+  margin-bottom: -1px; /* 微调与文字对齐 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .footer-beian img {
+    opacity: 0.8; /* 暗色模式下仅降低透明度，不修改颜色 */
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));

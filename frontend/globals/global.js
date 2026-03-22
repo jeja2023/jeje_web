@@ -191,3 +191,35 @@ export function renderEmpty(container, message = "暂无内容") {
     </div>
   `;
 }
+
+/* ========== 站点动态配置加载 (备案信息等) ========== */
+export async function initFooter() {
+  try {
+    const settings = await fetchJSON(`${API_BASE}/settings`);
+    const footerBeian = document.querySelector(".footer-beian");
+    if (!footerBeian) return;
+
+    let html = "";
+    if (settings.icp_beian) {
+      html += `<a href="https://beian.miit.gov.cn/" target="_blank">${escapeHTML(settings.icp_beian)}</a>`;
+    }
+    if (settings.gongan_beian) {
+      const url = settings.gongan_url || "http://www.beian.gov.cn/";
+      html += `
+        <a href="${escapeHTML(url)}" target="_blank">
+          <img src="/globals/images/beian.png" alt="备案图标">
+          ${escapeHTML(settings.gongan_beian)}
+        </a>
+      `;
+    }
+    
+    if (html) {
+      footerBeian.innerHTML = html;
+    } else {
+      footerBeian.style.display = "none";
+    }
+  } catch (err) {
+    console.error("加载站点配置失败:", err);
+  }
+}
+

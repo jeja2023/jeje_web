@@ -11,6 +11,7 @@ const tabProjects = document.getElementById("tab-projects");
 const tabSettings = document.getElementById("tab-settings");
 const tabPanels = [tabDashboard, tabMessages, tabProjects, tabSettings].filter(Boolean);
 const passwordForm = document.getElementById("passwordForm");
+const siteSettingsForm = document.getElementById("siteSettingsForm");
 
 const adminMessageList = document.getElementById("adminMessageList");
 const messageSearch = document.getElementById("messageSearch");
@@ -614,6 +615,21 @@ function showTab(name) {
   });
 
   if (name === "dashboard") loadStats();
+  if (name === "settings") loadSiteSettings();
+}
+
+async function loadSiteSettings() {
+  try {
+    const settings = await fetchJSON(`${API_BASE}/admin/settings`);
+    if (siteSettingsForm) {
+      Object.entries(settings).forEach(([k, v]) => {
+        const input = siteSettingsForm.querySelector(`[name="${k}"]`);
+        if (input) input.value = v;
+      });
+    }
+  } catch (err) {
+    showToast(`读取站点配置失败：${err.message}`, "error");
+  }
 }
 
 async function updateMessageStatus(id, status) {
@@ -1209,6 +1225,22 @@ if (passwordForm) {
     } catch (err) {
       console.error("修改密码失败:", err);
       showToast(err.message || "修改密码失败", "error");
+    }
+  });
+}
+
+if (siteSettingsForm) {
+  siteSettingsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(siteSettingsForm));
+    try {
+      await fetchJSON(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      showToast("站点配置保存成功", "success");
+    } catch (err) {
+      showToast(`保存失败：${err.message}`, "error");
     }
   });
 }
