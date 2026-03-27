@@ -18,7 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/jeje_web main.go
 FROM alpine:latest
 
 # 安装基础库和时区数据
-RUN apk --no-cache add ca-certificates tzdata mailcap
+RUN apk --no-cache add ca-certificates tzdata mailcap sqlite
 ENV TZ=Asia/Shanghai
 
 WORKDIR /app
