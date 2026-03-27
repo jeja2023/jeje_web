@@ -17,7 +17,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/jeje_web main.go
 # 第二阶段：运行环境
 FROM alpine:latest
 
-# 安装基础库和时区数据
+# 切换国内镜像源以加速构建 (针对国内服务器优化)
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 RUN apk --no-cache add ca-certificates tzdata mailcap sqlite
 ENV TZ=Asia/Shanghai
 
