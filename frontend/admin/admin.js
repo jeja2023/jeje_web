@@ -147,7 +147,11 @@ function resolveMediaURL(url) {
   const raw = String(url || "").trim();
   if (!raw) return "";
   try {
-    return new URL(raw, window.location.origin).toString();
+    const parsed = new URL(raw, window.location.origin);
+    if (parsed.origin === window.location.origin) {
+      return parsed.pathname + parsed.search + parsed.hash;
+    }
+    return parsed.toString();
   } catch {
     return raw;
   }

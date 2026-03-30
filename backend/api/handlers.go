@@ -595,8 +595,8 @@ func (a *App) AdminUpload(c *gin.Context) {
 		maxBytes = 5 * 1024 * 1024
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBytes)
-	if err := c.Request.ParseMultipartForm(maxBytes); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "上传失败"})
+	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "解析文件上传失败"})
 		return
 	}
 	file, header, err := c.Request.FormFile("file")
