@@ -1044,7 +1044,7 @@ func (a *App) GetRSSFeed(c *gin.Context) {
 	rssContent.WriteString(`<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
-  <title>JEJE Atelier</title>
+  <title>JEJE Web</title>
   <link>http://localhost:8080/</link>
   <description>产品作品档案与博客展示</description>
   <language>zh-cn</language>

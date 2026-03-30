@@ -406,7 +406,7 @@ async function load() {
 try {
     const project = await fetchJSON(`${API_BASE}/projects/${id}`);
     render(project);
-    document.title = `${project.name} | JEJE Atelier`;
+    document.title = `${project.name} | JEJE Web`;
 
     // load comments
     state.project_id = id;

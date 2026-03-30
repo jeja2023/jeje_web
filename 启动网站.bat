@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 > nul
-title JEJE WEB 启动工具
+title JEJE Web 启动工具
 
 echo [1/3] 正在清理 8080 端口...
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING') do (

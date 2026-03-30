@@ -1,7 +1,7 @@
 {
   "name": "jeje_web",
   "version": "1.1.3",
-  "description": "JEJE WEB",
+  "description": "JEJE Web",
   "main": "index.js",
   "scripts": {
     "start": "cd backend && go run .",

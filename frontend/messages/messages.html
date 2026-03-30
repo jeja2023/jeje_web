@@ -1,106 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>来信交流 | JEJE Atelier</title>
-    <meta
-      name="description"
-      content="在 JEJE Atelier 留下建议、合作意向或技术反馈，让案例展示和真实交流形成闭环。"
-    />
-    <link rel="stylesheet" href="/globals/global.css" />
-    <link rel="stylesheet" href="messages.css" />
-  </head>
-  <body>
-    <header>
-      <div class="logo-lockup">
-        <span class="logo-mark">JE</span>
-        <div class="logo-stack">
-          <span class="logo">JEJE Atelier</span>
-          <span class="logo-subtitle">留言交流台</span>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>来信交流 | JEJE Web</title>
+  <meta name="description" content="在 JEJE Web 留下建议、合作意向或技术反馈，让案例展示和真实交流形成闭环。" />
+  <link rel="stylesheet" href="/globals/global.css" />
+  <link rel="stylesheet" href="messages.css" />
+</head>
+
+<body>
+  <header>
+    <div class="logo-lockup">
+      <span class="logo-mark">JE</span>
+      <div class="logo-stack">
+        <span class="logo">JEJE Web</span>
+        <span class="logo-subtitle">留言交流台</span>
+      </div>
+    </div>
+    <nav>
+      <a href="/">首页</a>
+      <a href="/admin">后台管理</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="section animate-fade-in">
+      <div class="message-intro">
+        <div class="header-content">
+          <span class="eyebrow">公开交流</span>
+          <h1 class="section-title">来信交流</h1>
+          <p class="page-lead mt-2">
+            在这里留下您的足迹，无论是技术交流、合作意向，亦或是对本站的任何建议，我都会认真阅读并及时回复。
+          </p>
+        </div>
+        <div class="message-intro-card">
+          <strong>留言会经过审核再公开展示</strong>
+          <p>如果你只是想私下沟通，也可以留下邮箱或社交账号，我会按照你提供的方式联系你。</p>
+          <div class="message-guidelines">
+            <span>合作沟通</span>
+            <span>功能反馈</span>
+            <span>体验建议</span>
+          </div>
         </div>
       </div>
-      <nav>
-        <a href="/">首页</a>
-        <a href="/admin">后台管理</a>
-      </nav>
-    </header>
 
-    <main class="container">
-      <section class="section animate-fade-in">
-        <div class="message-intro">
-          <div class="header-content">
-            <span class="eyebrow">公开交流</span>
-            <h1 class="section-title">来信交流</h1>
-            <p class="page-lead mt-2">
-              在这里留下您的足迹，无论是技术交流、合作意向，亦或是对本站的任何建议，我都会认真阅读并及时回复。
-            </p>
+      <div class="grid message-page-grid">
+        <div class="form-card animate-fade-in message-form-card">
+          <div class="card-header mb-3">
+            <h3 class="mb-1">快捷留言</h3>
+            <p class="text-muted form-helper-text">您的信息将在审核通过后公开显示。</p>
           </div>
-          <div class="message-intro-card">
-            <strong>留言会经过审核再公开展示</strong>
-            <p>如果你只是想私下沟通，也可以留下邮箱或社交账号，我会按照你提供的方式联系你。</p>
-            <div class="message-guidelines">
-              <span>合作沟通</span>
-              <span>功能反馈</span>
-              <span>体验建议</span>
+          <form id="messageForm" class="flex flex-column gap-2">
+            <div class="form-group">
+              <label class="text-muted small-label">称呼</label>
+              <input name="nickname" placeholder="如何称呼您？" required />
             </div>
-          </div>
+            <div class="form-group">
+              <label class="text-muted small-label">联系方式（可选）</label>
+              <input name="contact" placeholder="邮箱或社交账号" />
+            </div>
+            <div class="form-group">
+              <label class="text-muted small-label">内容</label>
+              <textarea name="content" placeholder="想要说点什么..." required rows="4"></textarea>
+            </div>
+
+            <div class="captcha-box mt-2">
+              <div id="captchaQuestion" class="captcha-question">验证码加载中...</div>
+              <div class="captcha-row">
+                <input name="captcha_answer" placeholder="输入答案" required />
+                <button class="btn small" type="button" id="captchaRefresh">换一题</button>
+              </div>
+              <input type="hidden" name="captcha_id" id="captchaId" />
+            </div>
+
+            <input name="website" class="honeypot" tabindex="-1" autocomplete="off" />
+            <button class="btn primary mt-2 message-submit-btn" type="submit">
+              <span>发送留言</span>
+              <i class="icon-send"></i>
+            </button>
+          </form>
         </div>
 
-        <div class="grid message-page-grid">
-          <div class="form-card animate-fade-in message-form-card">
-            <div class="card-header mb-3">
-              <h3 class="mb-1">快捷留言</h3>
-              <p class="text-muted form-helper-text">您的信息将在审核通过后公开显示。</p>
-            </div>
-            <form id="messageForm" class="flex flex-column gap-2">
-              <div class="form-group">
-                <label class="text-muted small-label">称呼</label>
-                <input name="nickname" placeholder="如何称呼您？" required />
-              </div>
-              <div class="form-group">
-                <label class="text-muted small-label">联系方式（可选）</label>
-                <input name="contact" placeholder="邮箱或社交账号" />
-              </div>
-              <div class="form-group">
-                <label class="text-muted small-label">内容</label>
-                <textarea name="content" placeholder="想要说点什么..." required rows="4"></textarea>
-              </div>
-
-              <div class="captcha-box mt-2">
-                <div id="captchaQuestion" class="captcha-question">验证码加载中...</div>
-                <div class="captcha-row">
-                  <input name="captcha_answer" placeholder="输入答案" required />
-                  <button class="btn small" type="button" id="captchaRefresh">换一题</button>
-                </div>
-                <input type="hidden" name="captcha_id" id="captchaId" />
-              </div>
-
-              <input name="website" class="honeypot" tabindex="-1" autocomplete="off" />
-              <button class="btn primary mt-2 message-submit-btn" type="submit">
-                <span>发送留言</span>
-                <i class="icon-send"></i>
-              </button>
-            </form>
+        <div class="message-list-container">
+          <div class="message-list-head">
+            <h3>最新动态</h3>
+            <p class="text-muted">公开展示的留言会按时间倒序排列，管理员回复会跟随展示。</p>
           </div>
-
-          <div class="message-list-container">
-            <div class="message-list-head">
-              <h3>最新动态</h3>
-              <p class="text-muted">公开展示的留言会按时间倒序排列，管理员回复会跟随展示。</p>
-            </div>
-            <div id="messageList" class="list flex flex-column gap-3"></div>
-            <div id="messagePagination" class="mt-4"></div>
-          </div>
+          <div id="messageList" class="list flex flex-column gap-3"></div>
+          <div id="messagePagination" class="mt-4"></div>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
+  </main>
 
-    <footer>
-      <p class="text-muted">感谢你的关注。© 2026 JEJE Atelier，欢迎继续交流。</p>
-      <div class="footer-beian"></div>
-    </footer>
+  <footer>
+    <p class="text-muted">感谢你的关注 © 2026 JEJE Web 欢迎继续交流</p>
+    <div class="footer-beian"></div>
+  </footer>
 
-    <script type="module" src="messages.js"></script>
-  </body>
+  <script type="module" src="messages.js"></script>
+</body>
+
 </html>
