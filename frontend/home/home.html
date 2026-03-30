@@ -1,94 +1,94 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>产品与交互作品档案 | JEJE Atelier</title>
-    <meta
-      name="description"
-      content="JEJE Atelier 是一个围绕产品、交互与实现过程搭建的作品档案站，展示案例、细节和开放交流入口。"
-    />
-    <meta name="keywords" content="作品集, 产品设计, 前端开发, 项目展示, 交互设计" />
-    <link rel="stylesheet" href="/globals/global.css" />
-    <link rel="stylesheet" href="home.css" />
-  </head>
-  <body>
-    <header>
-      <div class="logo-lockup">
-        <span class="logo-mark">JE</span>
-        <div class="logo-stack">
-          <span class="logo">JEJE Atelier</span>
-          <span class="logo-subtitle">产品作品档案</span>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>产品与交互作品档案 | JEJE WEB</title>
+  <meta name="description" content="JEJE Web 是一个围绕产品、交互与实现过程搭建的作品档案站，展示案例、细节和开放交流入口。" />
+  <meta name="keywords" content="作品集, 产品设计, 前端开发, 项目展示, 交互设计" />
+  <link rel="stylesheet" href="/globals/global.css" />
+  <link rel="stylesheet" href="home.css" />
+</head>
+
+<body>
+  <header>
+    <div class="logo-lockup">
+      <span class="logo-mark">JE</span>
+      <div class="logo-stack">
+        <span class="logo">JEJE WEB</span>
+        <span class="logo-subtitle">产品作品档案</span>
+      </div>
+    </div>
+    <nav>
+      <a href="/" class="active">首页</a>
+      <a href="/messages">来信交流</a>
+      <a href="/admin">后台管理</a>
+    </nav>
+  </header>
+
+  <main class="container home-flow">
+    <section class="hero section animate-fade-in home-block">
+      <div class="hero-intro card">
+        <span class="eyebrow">个人档案</span>
+        <h1>交付价值，探索设计的边界</h1>
+        <p class="hero-lead">
+          专注于打造极致的数字产品体验。在这里，我会把产品构思、实现方式与最终呈现完整记录下来，让设计表达与工程落地都能被看见。
+        </p>
+        <p class="hero-note">聚焦产品策略、交互细节与前端实现，持续更新真实上线项目。</p>
+        <div class="hero-actions">
+          <a class="btn" href="/messages">联系我</a>
         </div>
       </div>
-      <nav>
-        <a href="/" class="active">首页</a>
-        <a href="/messages">来信交流</a>
-        <a href="/admin">后台管理</a>
-      </nav>
-    </header>
+    </section>
 
-    <main class="container home-flow">
-      <section class="hero section animate-fade-in home-block">
-        <div class="hero-intro card">
-          <span class="eyebrow">个人档案</span>
-          <h1>交付价值，探索设计的边界</h1>
-          <p class="hero-lead">
-            专注于打造极致的数字产品体验。在这里，我会把产品构思、实现方式与最终呈现完整记录下来，让设计表达与工程落地都能被看见。
-          </p>
-          <p class="hero-note">聚焦产品策略、交互细节与前端实现，持续更新真实上线项目。</p>
-          <div class="hero-actions">
-            <a class="btn" href="/messages">联系我</a>
-          </div>
-        </div>
-      </section>
-
-      <section id="projects" class="section home-block">
-        <div class="projects-panel card">
-          <div class="section-header">
-            <div>
-              <span class="eyebrow">项目作品</span>
-              <h2 class="section-title">项目作品</h2>
-              <p class="section-copy">
-                这里收录的是公开可见的项目条目。你可以按关键词与标签快速浏览，也可以进入详情页查看完整介绍与演示内容。
-              </p>
-            </div>
-            <div class="search-tools">
-              <div class="search-wrap">
-                <input id="projectSearchInput" placeholder="搜索项目..." />
-              </div>
-              <button id="projectSearchBtn" class="btn small" type="button">搜索</button>
-              <button id="projectSearchReset" class="btn small" type="button">重置</button>
-            </div>
-          </div>
-
-          <div id="projectTagList" class="tag-filter-list mb-4"></div>
-          <div id="projectGrid" class="grid"></div>
-          <div id="projectPagination" class="mt-4"></div>
-        </div>
-      </section>
-
-      <section class="section home-block">
-        <div class="home-cta card">
+    <section id="projects" class="section home-block">
+      <div class="projects-panel card">
+        <div class="section-header">
           <div>
-            <span class="eyebrow">继续交流</span>
-            <h3>对我的项目感兴趣？</h3>
-            <p class="text-muted mt-2">
-              欢迎在留言板分享你的想法，或告诉我你想进一步了解哪一类项目。
+            <span class="eyebrow">项目作品</span>
+            <h2 class="section-title">项目作品</h2>
+            <p class="section-copy">
+              这里收录的是公开可见的项目条目。你可以按关键词与标签快速浏览，也可以进入详情页查看完整介绍与演示内容。
             </p>
           </div>
-          <div class="home-cta-actions">
-            <a href="/messages" class="btn primary">前往留言板</a>
+          <div class="search-tools">
+            <div class="search-wrap">
+              <input id="projectSearchInput" placeholder="搜索项目..." />
+            </div>
+            <button id="projectSearchBtn" class="btn small" type="button">搜索</button>
+            <button id="projectSearchReset" class="btn small" type="button">重置</button>
           </div>
         </div>
-      </section>
-    </main>
 
-    <footer>
-      <p>© 2026 JEJE Atelier。以案例叙事、过程记录与开放交流为核心。</p>
-      <div class="footer-beian"></div>
-    </footer>
+        <div id="projectTagList" class="tag-filter-list mb-4"></div>
+        <div id="projectGrid" class="grid"></div>
+        <div id="projectPagination" class="mt-4"></div>
+      </div>
+    </section>
 
-    <script type="module" src="home.js"></script>
-  </body>
+    <section class="section home-block">
+      <div class="home-cta card">
+        <div>
+          <span class="eyebrow">继续交流</span>
+          <h3>对我的项目感兴趣？</h3>
+          <p class="text-muted mt-2">
+            欢迎在留言板分享你的想法，或告诉我你想进一步了解哪一类项目。
+          </p>
+        </div>
+        <div class="home-cta-actions">
+          <a href="/messages" class="btn primary">前往留言板</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 JEJE Web</p>
+    <div class="footer-beian"></div>
+  </footer>
+
+  <script type="module" src="home.js"></script>
+</body>
+
 </html>
